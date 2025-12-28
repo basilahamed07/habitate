@@ -1,0 +1,21 @@
+{
+  "name": "habbit-tracker",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "server": "node backend/server.js"
+  },
+  "dependencies": {
+    "chart.js": "^4.4.1",
+    "cors": "^2.8.5",
+    "express": "^4.18.2",
+    "gsap": "^3.12.5",
+    "next": "^14.2.3",
+    "react": "^18.2.0",
+    "react-chartjs-2": "^5.2.0",
+    "react-dom": "^18.2.0"
+  }
+}

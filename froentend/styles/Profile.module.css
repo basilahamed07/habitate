@@ -1,0 +1,179 @@
+.profilePage {
+  position: relative;
+}
+
+.backLink {
+  padding: 8px 16px;
+  border-radius: 999px;
+  border: 1px solid rgba(188, 179, 166, 0.7);
+  background: rgba(255, 255, 255, 0.85);
+  color: var(--ink-700);
+  font-size: 13px;
+}
+
+.profileLayout {
+  display: grid;
+  grid-template-columns: minmax(0, 1.2fr) minmax(0, 0.8fr);
+  gap: 24px;
+  align-items: start;
+}
+
+.profileCard {
+  background: rgba(255, 255, 255, 0.85);
+  border-radius: var(--radius-lg);
+  padding: 24px;
+  border: 1px solid rgba(222, 213, 199, 0.7);
+  box-shadow: var(--shadow-card);
+  display: grid;
+  gap: 18px;
+}
+
+.profileHeader {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.profileAvatar {
+  width: 72px;
+  height: 72px;
+  border-radius: 18px;
+  border: 1px solid rgba(201, 193, 180, 0.7);
+  object-fit: cover;
+}
+
+.profileTag {
+  font-size: 12px;
+  color: var(--ink-500);
+}
+
+.profileForm {
+  display: grid;
+  gap: 14px;
+}
+
+.profileLabel {
+  display: grid;
+  gap: 6px;
+  font-size: 12px;
+  color: var(--ink-500);
+}
+
+.profileInput,
+.profileTextarea {
+  border: 1px solid rgba(205, 196, 184, 0.8);
+  border-radius: 14px;
+  padding: 10px 12px;
+  font-size: 13px;
+  background: rgba(255, 255, 255, 0.95);
+  color: var(--ink-900);
+}
+
+.profileTextarea {
+  min-height: 100px;
+  resize: vertical;
+}
+
+.profileFile {
+  font-size: 12px;
+  border-radius: 12px;
+  padding: 6px;
+  border: 1px solid rgba(205, 196, 184, 0.8);
+  background: rgba(255, 255, 255, 0.95);
+}
+
+.profileActions {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.profileStatus {
+  font-size: 12px;
+  color: var(--ink-600);
+}
+
+.primaryButton {
+  border: none;
+  padding: 10px 18px;
+  border-radius: 999px;
+  background: rgba(125, 150, 112, 0.95);
+  color: #f6f2ea;
+  font-size: 13px;
+  cursor: pointer;
+}
+
+.secondaryButton {
+  border: none;
+  padding: 10px 18px;
+  border-radius: 999px;
+  background: rgba(237, 231, 221, 0.9);
+  color: var(--ink-700);
+  font-size: 13px;
+  cursor: pointer;
+}
+
+.quoteCard {
+  position: relative;
+  background: rgba(255, 255, 255, 0.78);
+  border-radius: var(--radius-lg);
+  padding: 24px;
+  border: 1px solid rgba(222, 213, 199, 0.7);
+  box-shadow: var(--shadow-card);
+  display: grid;
+  gap: 14px;
+  align-self: center;
+  overflow: hidden;
+}
+
+.quoteGlow {
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(circle at 90% 20%, rgba(235, 123, 83, 0.4), transparent 55%),
+    radial-gradient(circle at 85% 80%, rgba(98, 160, 220, 0.45), transparent 55%);
+  opacity: 0.7;
+  z-index: 0;
+}
+
+.quoteHeadline {
+  position: relative;
+  z-index: 1;
+  margin: 0;
+  font-family: var(--font-display), "Times New Roman", serif;
+  font-size: clamp(32px, 4vw, 44px);
+  line-height: 1.05;
+  color: var(--ink-900);
+}
+
+.quoteText {
+  position: relative;
+  z-index: 1;
+  margin: 0;
+  font-size: 14px;
+  line-height: 1.6;
+  color: var(--ink-700);
+}
+
+.quoteAuthor {
+  position: relative;
+  z-index: 1;
+  font-size: 12px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--ink-500);
+}
+
+@media (max-width: 720px) {
+  .profileLayout {
+    grid-template-columns: 1fr;
+  }
+
+  .profileCard {
+    padding: 18px;
+  }
+
+  .profileHeader {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+}

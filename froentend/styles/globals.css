@@ -1,0 +1,100 @@
+:root {
+  --sage-50: #f3f6f1;
+  --sage-100: #e2e9df;
+  --sage-200: #cfd9c9;
+  --beige-50: #f8f2ea;
+  --beige-100: #efe7dc;
+  --beige-200: #e4d7c7;
+  --pearl: #fbf9f4;
+  --ink-900: #2b2a27;
+  --ink-700: #5f5a53;
+  --ink-500: #8a8278;
+  --moss: #7f9276;
+  --moss-strong: #6c8463;
+  --shadow-soft: 0 24px 60px rgba(66, 56, 46, 0.12);
+  --shadow-card: 0 18px 40px rgba(77, 66, 54, 0.14);
+  --radius-lg: 28px;
+  --radius-md: 20px;
+  --radius-sm: 14px;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  padding: 0;
+  margin: 0;
+  min-height: 100%;
+}
+
+body {
+  font-family: var(--font-body), "Times New Roman", serif;
+  color: var(--ink-900);
+  background-color: var(--pearl);
+  background-image:
+    radial-gradient(circle at 10% 20%, rgba(239, 231, 220, 0.9), transparent 55%),
+    radial-gradient(circle at 80% 10%, rgba(207, 217, 201, 0.7), transparent 50%),
+    radial-gradient(circle at 15% 80%, rgba(233, 223, 210, 0.75), transparent 60%),
+    linear-gradient(135deg, rgba(251, 249, 244, 0.9), rgba(242, 237, 229, 0.95));
+  background-attachment: fixed;
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+  font-family: var(--font-display), "Times New Roman", serif;
+  font-weight: 600;
+  letter-spacing: 0.01em;
+  margin: 0 0 12px;
+}
+
+p {
+  margin: 0 0 12px;
+  color: var(--ink-700);
+  line-height: 1.6;
+}
+
+button,
+input,
+select,
+textarea {
+  font-family: inherit;
+}
+
+main {
+  min-height: 100vh;
+}
+
+.page {
+  min-height: 100vh;
+  padding: 48px clamp(20px, 4vw, 64px) 64px;
+  position: relative;
+  animation: fadeUp 0.6s ease-out both;
+}
+
+@keyframes fadeUp {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@media (max-width: 720px) {
+  .page {
+    padding: 32px 20px 48px;
+  }
+}

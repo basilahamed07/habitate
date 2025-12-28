@@ -1,0 +1,27 @@
+.row {
+  display: grid;
+  gap: 8px;
+}
+
+.header {
+  display: flex;
+  justify-content: space-between;
+  font-size: 14px;
+  color: var(--ink-700);
+}
+
+.track {
+  position: relative;
+  height: 10px;
+  border-radius: 999px;
+  background: rgba(210, 205, 195, 0.4);
+  overflow: hidden;
+}
+
+.fill {
+  display: block;
+  height: 100%;
+  border-radius: 999px;
+  transition: width 0.6s ease;
+  background: linear-gradient(90deg, rgba(111, 137, 106, 0.85), rgba(146, 167, 136, 0.85));
+}

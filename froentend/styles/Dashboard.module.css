@@ -1,0 +1,428 @@
+.dashboardPage {
+  position: relative;
+}
+
+.dashboardMain {
+  min-width: 0;
+}
+
+.headerActions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+
+.dateButton {
+  padding: 8px 14px;
+  border-radius: 999px;
+  border: 1px solid rgba(201, 193, 180, 0.7);
+  background: rgba(255, 255, 255, 0.8);
+  font-size: 13px;
+  color: var(--ink-700);
+}
+
+.avatar {
+  border-radius: 50%;
+  border: 1px solid rgba(201, 193, 180, 0.7);
+}
+
+.profileLink {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  text-decoration: none;
+  padding: 0;
+}
+
+.loadingOverlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(249, 246, 241, 0.94);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 30;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.loadingCard {
+  background: rgba(255, 255, 255, 0.9);
+  border-radius: 24px;
+  padding: 28px 36px;
+  border: 1px solid rgba(222, 213, 199, 0.7);
+  box-shadow: var(--shadow-card);
+  text-align: center;
+  display: grid;
+  gap: 10px;
+  min-width: 240px;
+}
+
+.loadingTitle {
+  font-family: var(--font-display), "Times New Roman", serif;
+  font-size: 24px;
+  color: var(--ink-900);
+}
+
+.loadingSubtitle {
+  font-size: 13px;
+  color: var(--ink-500);
+}
+
+.loadingDots {
+  display: inline-flex;
+  justify-content: center;
+  gap: 8px;
+  margin-top: 6px;
+}
+
+.loadingDot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: rgba(141, 164, 132, 0.8);
+  opacity: 0.5;
+}
+
+.statsGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 16px;
+  margin-bottom: 28px;
+}
+
+.chartBody {
+  height: 280px;
+}
+
+.chartsGrid {
+  display: grid;
+  grid-template-columns: minmax(0, 2fr) minmax(0, 1fr);
+  gap: 20px;
+  margin-bottom: 24px;
+}
+
+.lowerGrid {
+  display: grid;
+  grid-template-columns: minmax(0, 2fr) minmax(0, 1fr);
+  gap: 20px;
+}
+
+.progressCard {
+  background: rgba(255, 255, 255, 0.78);
+  border-radius: var(--radius-lg);
+  padding: 20px;
+  box-shadow: var(--shadow-card);
+  display: grid;
+  gap: 16px;
+}
+
+.progressHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.progressTitle {
+  margin: 0;
+  font-size: clamp(18px, 3vw, 22px);
+}
+
+.progressList {
+  display: grid;
+  gap: 14px;
+}
+
+.summaryCard {
+  background: rgba(255, 255, 255, 0.82);
+  border-radius: var(--radius-lg);
+  padding: 20px;
+  border: 1px solid rgba(222, 213, 199, 0.7);
+  box-shadow: var(--shadow-card);
+  display: grid;
+  gap: 12px;
+}
+
+.summaryList {
+  display: grid;
+  gap: 10px;
+  font-size: 13px;
+  color: var(--ink-700);
+}
+
+.summaryRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.summaryMeta {
+  color: var(--ink-500);
+}
+
+.summaryEmpty {
+  margin: 0;
+  font-size: 13px;
+  color: var(--ink-500);
+}
+
+.overviewCard {
+  background: linear-gradient(165deg, rgba(255, 255, 255, 0.85), rgba(244, 240, 233, 0.94));
+  border-radius: var(--radius-lg);
+  padding: 20px;
+  border: 1px solid rgba(222, 213, 199, 0.7);
+  display: grid;
+  gap: 10px;
+}
+
+.overviewValue {
+  font-size: clamp(34px, 6vw, 46px);
+  font-family: var(--font-display), "Times New Roman", serif;
+}
+
+.overviewTag {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 13px;
+  color: var(--moss-strong);
+}
+
+.overviewTag span {
+  display: inline-block;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--moss-strong);
+}
+
+.chartStack {
+  display: grid;
+  gap: 16px;
+}
+
+.legendRow {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  font-size: 13px;
+  color: var(--ink-700);
+}
+
+.legendItem {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.legendSwatch {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+}
+
+.tableBlock {
+  display: grid;
+  gap: 12px;
+}
+
+.tableHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 14px;
+}
+
+.tableHeader h3 {
+  margin: 0;
+  font-size: clamp(18px, 3vw, 22px);
+}
+
+.addHabitForm {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.addInput {
+  border: 1px solid rgba(201, 193, 180, 0.7);
+  border-radius: 999px;
+  padding: 8px 14px;
+  background: rgba(255, 255, 255, 0.9);
+  font-size: 13px;
+  min-width: 180px;
+}
+
+.addActions {
+  display: flex;
+  gap: 8px;
+}
+
+.secondaryButton {
+  border: none;
+  padding: 8px 16px;
+  border-radius: 999px;
+  background: rgba(237, 231, 221, 0.9);
+  color: var(--ink-700);
+  cursor: pointer;
+  font-size: 13px;
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.secondaryButton:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 10px 20px rgba(118, 133, 107, 0.12);
+}
+
+.addButton {
+  border: none;
+  padding: 8px 16px;
+  border-radius: 999px;
+  background: linear-gradient(135deg, rgba(146, 169, 140, 0.85), rgba(188, 208, 176, 0.9));
+  color: var(--ink-900);
+  cursor: pointer;
+  font-size: 13px;
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.addButton:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 10px 20px rgba(118, 133, 107, 0.2);
+}
+
+.addButton:disabled {
+  cursor: not-allowed;
+  opacity: 0.6;
+  box-shadow: none;
+  transform: none;
+}
+
+.analysisCard {
+  background: rgba(255, 255, 255, 0.82);
+  border-radius: var(--radius-lg);
+  padding: 20px;
+  border: 1px solid rgba(222, 213, 199, 0.7);
+  box-shadow: var(--shadow-card);
+  display: grid;
+  gap: 16px;
+}
+
+.analysisCard h3 {
+  margin: 0;
+  font-size: 20px;
+}
+
+.analysisList {
+  display: grid;
+  gap: 14px;
+}
+
+.analysisRow {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  font-size: 13px;
+  color: var(--ink-700);
+}
+
+.analysisRow strong {
+  display: block;
+  font-size: 14px;
+  color: var(--ink-900);
+}
+
+.analysisDot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  margin-top: 6px;
+}
+
+.analysisMeta {
+  display: block;
+  color: var(--ink-500);
+  font-size: 12px;
+}
+
+.analysisHabits {
+  display: grid;
+  gap: 8px;
+  border-top: 1px solid rgba(222, 213, 199, 0.6);
+  padding-top: 12px;
+  font-size: 12px;
+  color: var(--ink-700);
+}
+
+.analysisHabitRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.analysisFoot {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  font-size: 12px;
+  color: var(--ink-500);
+}
+
+.sidePanel {
+  display: grid;
+  gap: 16px;
+}
+
+
+.botanical {
+  position: absolute;
+  bottom: 20px;
+  right: 6%;
+  width: 140px;
+  opacity: 0.25;
+  pointer-events: none;
+}
+
+@media (max-width: 980px) {
+  .chartsGrid,
+  .lowerGrid {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 640px) {
+  .headerActions {
+    width: 100%;
+    justify-content: space-between;
+  }
+
+  .tableHeader {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 12px;
+  }
+
+  .addHabitForm {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .addInput {
+    width: 100%;
+  }
+
+  .analysisCard {
+    padding: 18px;
+  }
+
+  .chartBody {
+    height: 220px;
+  }
+
+  .botanical {
+    width: 100px;
+    right: 4%;
+  }
+}

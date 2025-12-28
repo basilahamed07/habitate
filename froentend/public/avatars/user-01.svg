@@ -1,0 +1,15 @@
+<svg width="120" height="120" viewBox="0 0 120 120" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="skin" x1="20" y1="20" x2="100" y2="100" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#F1E2D3" />
+      <stop offset="1" stop-color="#E4C9B5" />
+    </linearGradient>
+    <linearGradient id="shirt" x1="40" y1="70" x2="80" y2="110" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#9FB29C" />
+      <stop offset="1" stop-color="#7F9276" />
+    </linearGradient>
+  </defs>
+  <circle cx="60" cy="60" r="58" fill="#F6F2EA" stroke="#D9CFC1" />
+  <circle cx="60" cy="48" r="22" fill="url(#skin)" />
+  <path d="M30 100C36 78 84 78 90 100" fill="url(#shirt)" />
+</svg>

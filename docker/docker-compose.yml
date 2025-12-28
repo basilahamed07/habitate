@@ -1,0 +1,30 @@
+services:
+  api:
+    build:
+      context: ..
+      dockerfile: docker/backend/Dockerfile.prod
+    container_name: habitat_api
+    ports:
+      - "8000:8000"
+    environment:
+      DATABASE_URL: postgresql+psycopg2://postgres:postgres@db:5432/habits
+      SECRET_KEY: change_me
+      TRACK_WINDOW_DAYS: 30
+      CORS_ORIGINS: "*"
+    depends_on:
+      - db
+
+  db:
+    image: postgres:15
+    container_name: habitat_db
+    ports:
+      - "5432:5432"
+    environment:
+      POSTGRES_DB: habits
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+
+volumes:
+  pgdata:

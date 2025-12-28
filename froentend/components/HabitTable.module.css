@@ -1,0 +1,111 @@
+.wrapper {
+  background: rgba(255, 255, 255, 0.78);
+  border-radius: var(--radius-lg);
+  padding: 20px;
+  box-shadow: var(--shadow-card);
+  overflow-x: auto;
+}
+
+.table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+  color: var(--ink-700);
+}
+
+.table th {
+  text-align: center;
+  font-weight: 500;
+  padding: 8px 6px;
+  color: var(--ink-500);
+}
+
+.table th:first-child,
+.table td:first-child {
+  text-align: left;
+}
+
+.table td {
+  padding: 8px 6px;
+  border-bottom: 1px solid rgba(213, 206, 196, 0.4);
+  text-align: center;
+}
+
+.habitName {
+  font-weight: 500;
+  color: var(--ink-900);
+}
+
+.habitRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.deleteButton {
+  border: none;
+  border-radius: 999px;
+  padding: 4px 10px;
+  font-size: 11px;
+  background: rgba(222, 205, 191, 0.8);
+  color: var(--ink-700);
+  cursor: pointer;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.deleteButton:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 8px 16px rgba(101, 92, 79, 0.12);
+}
+
+.deleteButton:focus-visible {
+  outline: 2px solid rgba(126, 148, 117, 0.8);
+  outline-offset: 2px;
+}
+
+.dot {
+  display: inline-block;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  border: 1px solid rgba(133, 153, 125, 0.6);
+  background: transparent;
+  padding: 0;
+  cursor: pointer;
+  transition: transform 0.2s ease;
+}
+
+.dot:hover {
+  transform: scale(1.15);
+}
+
+.dot:focus-visible {
+  outline: 2px solid rgba(126, 148, 117, 0.8);
+  outline-offset: 2px;
+}
+
+.complete {
+  background: linear-gradient(135deg, rgba(129, 153, 122, 0.85), rgba(180, 203, 170, 0.85));
+  border-color: rgba(129, 153, 122, 0.6);
+}
+
+.pending {
+  background: rgba(235, 229, 220, 0.6);
+}
+
+@media (max-width: 640px) {
+  .table {
+    min-width: 640px;
+    font-size: 12px;
+  }
+
+  .table th,
+  .table td {
+    padding: 6px 4px;
+  }
+
+  .habitName {
+    white-space: nowrap;
+  }
+}

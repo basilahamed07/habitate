@@ -1,0 +1,670 @@
+.headerActions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.dateButton {
+  padding: 8px 14px;
+  border-radius: 999px;
+  border: 1px solid rgba(201, 193, 180, 0.7);
+  background: rgba(255, 255, 255, 0.8);
+  font-size: 13px;
+  color: var(--ink-700);
+}
+
+.avatar {
+  border-radius: 50%;
+  border: 1px solid rgba(201, 193, 180, 0.7);
+}
+
+.adminGrid {
+  display: grid;
+  grid-template-columns: minmax(0, 2.3fr) minmax(0, 1fr);
+  gap: 24px;
+}
+
+.tableCard {
+  background: rgba(255, 255, 255, 0.78);
+  border-radius: var(--radius-lg);
+  padding: 20px;
+  box-shadow: var(--shadow-card);
+  display: grid;
+  gap: 16px;
+}
+
+.tableHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+}
+
+.searchBar {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 14px;
+  border-radius: 999px;
+  background: rgba(246, 242, 234, 0.9);
+  border: 1px solid rgba(208, 199, 186, 0.6);
+  min-width: 220px;
+}
+
+.searchInput {
+  border: none;
+  background: transparent;
+  outline: none;
+  font-size: 14px;
+  width: 100%;
+}
+
+.addUserForm {
+  display: grid;
+  gap: 8px;
+  align-items: center;
+}
+
+.addInput {
+  border: 1px solid rgba(201, 193, 180, 0.7);
+  border-radius: 999px;
+  padding: 8px 14px;
+  background: rgba(255, 255, 255, 0.9);
+  font-size: 13px;
+  min-width: 200px;
+}
+
+.addActions {
+  display: flex;
+  gap: 8px;
+}
+
+.addButton {
+  border: none;
+  padding: 8px 16px;
+  border-radius: 999px;
+  background: linear-gradient(135deg, rgba(146, 169, 140, 0.85), rgba(188, 208, 176, 0.9));
+  color: var(--ink-900);
+  cursor: pointer;
+  font-size: 13px;
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.addButton:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 10px 20px rgba(118, 133, 107, 0.2);
+}
+
+.addButton:disabled {
+  cursor: not-allowed;
+  opacity: 0.6;
+  box-shadow: none;
+  transform: none;
+}
+
+.table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+  color: var(--ink-700);
+}
+
+.table th {
+  text-align: left;
+  padding: 10px 8px;
+  color: var(--ink-500);
+  font-weight: 500;
+  border-bottom: 1px solid rgba(215, 207, 196, 0.6);
+}
+
+.table td {
+  padding: 12px 8px;
+  border-bottom: 1px solid rgba(224, 216, 206, 0.6);
+}
+
+.badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 4px 10px;
+  border-radius: 999px;
+  font-size: 12px;
+  color: var(--ink-700);
+  background: rgba(214, 227, 206, 0.6);
+}
+
+.badgePaused {
+  background: rgba(232, 223, 210, 0.7);
+}
+
+.actionButtons {
+  display: flex;
+  gap: 8px;
+}
+
+.actionButton {
+  border: none;
+  background: rgba(244, 239, 230, 0.9);
+  padding: 6px 10px;
+  border-radius: 10px;
+  font-size: 12px;
+  cursor: pointer;
+  transition: background 0.3s ease;
+}
+
+.actionButton:hover {
+  background: rgba(217, 233, 210, 0.8);
+}
+
+.pagination {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  font-size: 13px;
+  color: var(--ink-500);
+}
+
+.pageButtons {
+  display: flex;
+  gap: 8px;
+}
+
+.pageButton {
+  border: 1px solid rgba(201, 193, 180, 0.7);
+  padding: 6px 10px;
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.8);
+  cursor: pointer;
+  font-size: 12px;
+  color: var(--ink-700);
+}
+
+.pageButtonActive {
+  background: rgba(182, 202, 172, 0.9);
+  border-color: rgba(142, 165, 132, 0.8);
+}
+
+.statsPanel {
+  display: grid;
+  gap: 16px;
+}
+
+.reportCard {
+  background: rgba(255, 255, 255, 0.78);
+  border-radius: var(--radius-lg);
+  padding: 20px;
+  box-shadow: var(--shadow-card);
+  display: grid;
+  gap: 12px;
+}
+
+.reportCard p {
+  margin: 0;
+  color: var(--ink-500);
+  font-size: 13px;
+}
+
+.statsCard {
+  background: rgba(255, 255, 255, 0.78);
+  border-radius: var(--radius-lg);
+  padding: 20px;
+  box-shadow: var(--shadow-card);
+  display: grid;
+  gap: 12px;
+}
+
+.statTitle {
+  margin: 0;
+  font-size: 18px;
+}
+
+.statValue {
+  font-size: 36px;
+  font-family: var(--font-display), "Times New Roman", serif;
+}
+
+.userCard {
+  background: rgba(255, 255, 255, 0.78);
+  border-radius: var(--radius-lg);
+  padding: 20px;
+  box-shadow: var(--shadow-card);
+  display: grid;
+  gap: 16px;
+}
+
+.userRow {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.userMeta {
+  display: grid;
+  gap: 4px;
+}
+
+.userActions {
+  display: flex;
+  gap: 10px;
+}
+
+.secondaryButton {
+  border: none;
+  padding: 8px 12px;
+  border-radius: 999px;
+  background: rgba(237, 231, 221, 0.9);
+  cursor: pointer;
+  font-size: 13px;
+}
+
+.primaryButton {
+  border: none;
+  padding: 8px 12px;
+  border-radius: 999px;
+  background: linear-gradient(135deg, rgba(146, 169, 140, 0.85), rgba(188, 208, 176, 0.9));
+  cursor: pointer;
+  font-size: 13px;
+}
+
+.loginCard {
+  max-width: 420px;
+  background: rgba(255, 255, 255, 0.9);
+  border-radius: var(--radius-lg);
+  padding: 24px;
+  border: 1px solid rgba(222, 213, 199, 0.7);
+  box-shadow: var(--shadow-card);
+  display: grid;
+  gap: 16px;
+  margin: 0 auto;
+}
+
+.loginHeader h3 {
+  margin: 0 0 6px;
+  font-size: 22px;
+}
+
+.loginHeader p {
+  margin: 0;
+  color: var(--ink-500);
+  font-size: 13px;
+}
+
+.loginForm {
+  display: grid;
+  gap: 12px;
+}
+
+.loginInput {
+  border: 1px solid rgba(201, 193, 180, 0.7);
+  border-radius: 999px;
+  padding: 10px 14px;
+  background: rgba(255, 255, 255, 0.9);
+  font-size: 14px;
+}
+
+.loginButton {
+  border: none;
+  padding: 10px 18px;
+  border-radius: 999px;
+  background: rgba(125, 150, 112, 0.95);
+  color: #f6f2ea;
+  font-size: 14px;
+  cursor: pointer;
+}
+
+.loginError {
+  font-size: 12px;
+  color: #a2615b;
+}
+
+.modalOverlay {
+  position: fixed;
+  inset: 0;
+  z-index: 40;
+  display: grid;
+  place-items: center;
+}
+
+.modalBackdrop {
+  position: absolute;
+  inset: 0;
+  background: rgba(44, 40, 35, 0.25);
+  border: none;
+  cursor: pointer;
+}
+
+.modalCard {
+  position: relative;
+  z-index: 1;
+  background: rgba(255, 255, 255, 0.92);
+  border-radius: var(--radius-lg);
+  padding: 22px;
+  border: 1px solid rgba(222, 213, 199, 0.7);
+  box-shadow: var(--shadow-card);
+  width: min(520px, 92vw);
+  display: grid;
+  gap: 16px;
+  max-height: 90vh;
+  overflow-y: auto;
+}
+
+.modalHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.modalTitle {
+  margin: 0;
+  font-size: 18px;
+  font-family: var(--font-display), "Times New Roman", serif;
+}
+
+.modalClose {
+  border: none;
+  background: rgba(237, 231, 221, 0.7);
+  border-radius: 10px;
+  width: 28px;
+  height: 28px;
+  cursor: pointer;
+  color: var(--ink-700);
+}
+
+.modalBody {
+  display: grid;
+  gap: 16px;
+}
+
+.modalStats {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+  font-size: 13px;
+  color: var(--ink-700);
+}
+
+.modalStats strong {
+  display: block;
+  font-size: 18px;
+  color: var(--ink-900);
+}
+
+.modalLabel {
+  text-transform: uppercase;
+  letter-spacing: 0.16em;
+  font-size: 10px;
+  color: var(--ink-500);
+}
+
+.modalForm {
+  display: grid;
+  gap: 12px;
+}
+
+.modalField {
+  display: grid;
+  gap: 6px;
+  font-size: 12px;
+  color: var(--ink-500);
+}
+
+.modalInput,
+.modalSelect {
+  border: 1px solid rgba(201, 193, 180, 0.7);
+  border-radius: 999px;
+  padding: 8px 14px;
+  background: rgba(255, 255, 255, 0.9);
+  font-size: 13px;
+  color: var(--ink-900);
+  width: 100%;
+}
+
+.modalSelect {
+  appearance: none;
+}
+
+.modalActions {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.modalSection {
+  display: grid;
+  gap: 10px;
+}
+
+.modalSection h4 {
+  margin: 0;
+  font-size: 16px;
+}
+
+.reportGrid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.reportStat {
+  background: rgba(247, 242, 233, 0.8);
+  border-radius: 14px;
+  padding: 12px;
+  font-size: 12px;
+  color: var(--ink-500);
+}
+
+.reportStat strong {
+  display: block;
+  font-size: 18px;
+  color: var(--ink-900);
+}
+
+.reportTopChartCard {
+  background: rgba(255, 255, 255, 0.75);
+  border-radius: 18px;
+  padding: 16px;
+  border: 1px solid rgba(222, 213, 199, 0.6);
+  display: grid;
+  gap: 12px;
+}
+
+.reportTopChartCard h4 {
+  margin: 0;
+  font-size: 16px;
+}
+
+.reportTopChart {
+  height: 240px;
+}
+
+.reportChartRow {
+  display: grid;
+  grid-template-columns: minmax(0, 160px) minmax(0, 1fr);
+  gap: 16px;
+  align-items: center;
+}
+
+.reportChart {
+  width: 160px;
+  height: 160px;
+}
+
+.reportLegend {
+  display: grid;
+  gap: 8px;
+  font-size: 12px;
+  color: var(--ink-700);
+}
+
+.reportLegendItem {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.reportLegendSwatch {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+}
+
+.reportTopCard {
+  background: rgba(255, 255, 255, 0.75);
+  border-radius: 18px;
+  padding: 16px;
+  border: 1px solid rgba(222, 213, 199, 0.6);
+  display: grid;
+  gap: 10px;
+}
+
+.reportTopCard h4 {
+  margin: 0;
+  font-size: 16px;
+}
+
+.reportTopList {
+  display: grid;
+  gap: 8px;
+  font-size: 13px;
+  color: var(--ink-700);
+}
+
+.reportTopRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.modalChartRow {
+  display: grid;
+  grid-template-columns: minmax(0, 140px) minmax(0, 1fr);
+  gap: 16px;
+  align-items: center;
+}
+
+.modalChart {
+  width: 140px;
+  height: 140px;
+}
+
+.modalLegend {
+  display: grid;
+  gap: 8px;
+  font-size: 12px;
+  color: var(--ink-700);
+}
+
+.modalLegendItem {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.modalLegendSwatch {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+}
+
+.modalList {
+  display: grid;
+  gap: 8px;
+  font-size: 13px;
+  color: var(--ink-700);
+}
+
+.modalRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.modalEmpty {
+  margin: 0;
+  font-size: 13px;
+  color: var(--ink-500);
+}
+
+.passwordForm {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.passwordInput {
+  border: 1px solid rgba(201, 193, 180, 0.7);
+  border-radius: 999px;
+  padding: 8px 14px;
+  background: rgba(255, 255, 255, 0.9);
+  font-size: 13px;
+  min-width: 200px;
+}
+
+.passwordStatus {
+  font-size: 12px;
+  color: var(--ink-500);
+}
+
+.botanical {
+  position: absolute;
+  bottom: 18px;
+  left: 5%;
+  width: 140px;
+  opacity: 0.25;
+  pointer-events: none;
+}
+
+@media (max-width: 980px) {
+  .adminGrid {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 720px) {
+  .tableHeader {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .searchBar {
+    width: 100%;
+  }
+
+  .addUserForm {
+    width: 100%;
+  }
+
+  .addInput {
+    width: 100%;
+  }
+
+  .modalStats {
+    grid-template-columns: 1fr;
+  }
+
+  .modalChartRow {
+    grid-template-columns: 1fr;
+    justify-items: center;
+  }
+
+  .reportGrid {
+    grid-template-columns: 1fr;
+  }
+
+  .reportChartRow {
+    grid-template-columns: 1fr;
+    justify-items: center;
+  }
+
+  .reportTopChart {
+    height: 200px;
+  }
+
+  .botanical {
+    width: 100px;
+    left: 4%;
+  }
+}

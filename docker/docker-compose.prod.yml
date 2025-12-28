@@ -1,0 +1,41 @@
+services:
+  db:
+    image: postgres:15
+    container_name: habitat_db
+    ports:
+      - "5432:5432"
+    environment:
+      POSTGRES_DB: habits
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+
+  api:
+    build:
+      context: ..
+      dockerfile: docker/backend/Dockerfile.prod
+    container_name: habitat_api
+    ports:
+      - "8000:8000"
+    environment:
+      DATABASE_URL: postgresql+psycopg2://postgres:postgres@db:5432/habits
+      SECRET_KEY: change_me
+      CORS_ORIGINS: "*"
+    depends_on:
+      - db
+
+  web:
+    build:
+      context: ..
+      dockerfile: docker/frontend/Dockerfile.prod
+    container_name: habitat_web
+    ports:
+      - "3000:3000"
+    environment:
+      NEXT_PUBLIC_API_BASE: http://localhost:8000/api
+    depends_on:
+      - api
+
+volumes:
+  pgdata:

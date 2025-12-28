@@ -1,0 +1,23 @@
+# Node/Next.js
+node_modules/
+.next/
+out/
+
+# Env files
+.env
+.env.*
+!.env.example
+
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+env/
+
+# Logs
+*.log
+backend/app/logs/
+
+# OS/editor
+.DS_Store
+.vscode/

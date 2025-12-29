@@ -1,0 +1,150 @@
+.sleepPage {
+  position: relative;
+}
+
+.headerActions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.backLink {
+  padding: 8px 14px;
+  border-radius: 999px;
+  border: 1px solid rgba(201, 193, 180, 0.7);
+  background: rgba(255, 255, 255, 0.85);
+  color: var(--ink-700);
+  font-size: 13px;
+  text-decoration: none;
+}
+
+.dateButton {
+  padding: 8px 14px;
+  border-radius: 999px;
+  border: 1px solid rgba(201, 193, 180, 0.7);
+  background: rgba(255, 255, 255, 0.8);
+  font-size: 13px;
+  color: var(--ink-700);
+}
+
+.statsRow {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+  gap: 16px;
+  margin-bottom: 24px;
+}
+
+.statCard {
+  background: rgba(255, 255, 255, 0.85);
+  border-radius: var(--radius-lg);
+  padding: 16px;
+  border: 1px solid rgba(222, 213, 199, 0.7);
+  box-shadow: var(--shadow-card);
+  display: grid;
+  gap: 6px;
+}
+
+.statCard span {
+  color: var(--ink-500);
+  font-size: 12px;
+}
+
+.statCard strong {
+  font-size: 20px;
+}
+
+.sleepLayout {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 20px;
+}
+
+.sleepMain {
+  display: grid;
+  gap: 20px;
+}
+
+.chartBody {
+  height: 260px;
+}
+
+.logCard {
+  background: rgba(255, 255, 255, 0.85);
+  border-radius: var(--radius-lg);
+  padding: 20px;
+  border: 1px solid rgba(222, 213, 199, 0.7);
+  box-shadow: var(--shadow-card);
+  display: grid;
+  gap: 14px;
+}
+
+.logCard h3 {
+  margin: 0;
+}
+
+.logForm {
+  display: grid;
+  gap: 12px;
+}
+
+.logField {
+  display: grid;
+  gap: 6px;
+  font-size: 12px;
+  color: var(--ink-500);
+}
+
+.dateField {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 12px;
+  border-radius: 14px;
+  border: 1px solid rgba(205, 196, 184, 0.8);
+  background: linear-gradient(140deg, rgba(255, 255, 255, 0.96), rgba(234, 228, 219, 0.85));
+}
+
+.dateIcon {
+  font-size: 16px;
+}
+
+.input {
+  border: 1px solid rgba(205, 196, 184, 0.8);
+  border-radius: 12px;
+  padding: 10px 12px;
+  font-size: 13px;
+  background: rgba(255, 255, 255, 0.95);
+  color: var(--ink-900);
+}
+
+.dateInput {
+  border: none;
+  padding: 6px 0;
+  background: transparent;
+  width: 100%;
+}
+
+.dateInput:focus {
+  outline: none;
+}
+
+.primaryButton {
+  border: none;
+  padding: 10px 18px;
+  border-radius: 999px;
+  background: rgba(125, 150, 112, 0.95);
+  color: #f6f2ea;
+  font-size: 13px;
+  cursor: pointer;
+}
+
+.statusText {
+  font-size: 12px;
+  color: var(--ink-500);
+}
+
+@media (max-width: 960px) {
+  .sleepLayout {
+    grid-template-columns: 1fr;
+  }
+}

@@ -39,6 +39,65 @@ const fallbackHabits = {
   days: fallbackDays
 };
 
+const SUCCESS_LABELS = {
+  good: "Good",
+  onTrack: "On Track",
+  needsFocus: "Needs Focus"
+};
+
+const getSuccessLabel = (rate) => {
+  if (rate >= 70) {
+    return SUCCESS_LABELS.good;
+  }
+  if (rate >= 40) {
+    return SUCCESS_LABELS.onTrack;
+  }
+  return SUCCESS_LABELS.needsFocus;
+};
+
+const getSuccessColor = (label) => {
+  if (label === SUCCESS_LABELS.good) {
+    return "#A9C1A2";
+  }
+  if (label === SUCCESS_LABELS.onTrack) {
+    return "#D8C7B2";
+  }
+  return "#E8DED2";
+};
+
+const computeOverviewBreakdown = (rows, windowDays = 7) => {
+  if (!rows?.length) {
+    return { good: 0, onTrack: 0, needsFocus: 0 };
+  }
+  let good = 0;
+  let onTrack = 0;
+  let needsFocus = 0;
+  rows.forEach((row) => {
+    const days = row.days || [];
+    const sliceLength = Math.min(windowDays, days.length);
+    if (sliceLength === 0) {
+      needsFocus += 1;
+      return;
+    }
+    const recent = days.slice(-sliceLength);
+    const completed = recent.filter(Boolean).length;
+    const rate = (completed / sliceLength) * 100;
+    if (rate >= 70) {
+      good += 1;
+    } else if (rate >= 40) {
+      onTrack += 1;
+    } else {
+      needsFocus += 1;
+    }
+  });
+  const total = rows.length;
+  return {
+    good: Math.round((good / total) * 100),
+    onTrack: Math.round((onTrack / total) * 100),
+    needsFocus: Math.round((needsFocus / total) * 100)
+  };
+};
+
 export default function DashboardPage({ initialDashboard, initialHabits }) {
   const router = useRouter();
   const [dashboard, setDashboard] = useState(initialDashboard);
@@ -239,19 +298,25 @@ export default function DashboardPage({ initialDashboard, initialHabits }) {
     }
   };
 
+  const habitRows = habitsData?.habitMatrix || [];
+  const habitDays =
+    habitsData?.days || habitRows?.[0]?.days?.length || dashboard.dailyCounts?.length || 0;
   const successRate = dashboard.successRate || dashboard.stats.successRate;
   const successTrend = dashboard.stats.successTrend || "+0%";
   const monthLabel = new Date().toLocaleString("en-US", { month: "long", year: "numeric" });
   const avatarSrc = userProfile?.avatarUrl || "/avatars/user-01.svg";
-  const remainder = Math.max(0, 100 - successRate);
-  const onTrack = Math.round(remainder * 0.6);
-  const needsFocus = remainder - onTrack;
+  const overviewBreakdown = useMemo(
+    () => computeOverviewBreakdown(habitRows, Math.min(7, habitDays || 7)),
+    [habitRows, habitDays]
+  );
+  const successLabel = getSuccessLabel(successRate);
+  const successColor = getSuccessColor(successLabel);
 
   const doughnutData = {
     labels: ["Good", "On Track", "Needs Focus"],
     datasets: [
       {
-        data: [successRate, onTrack, needsFocus],
+        data: [overviewBreakdown.good, overviewBreakdown.onTrack, overviewBreakdown.needsFocus],
         backgroundColor: ["#A9C1A2", "#D8C7B2", "#E8DED2"],
         borderWidth: 0
       }
@@ -266,10 +331,6 @@ export default function DashboardPage({ initialDashboard, initialHabits }) {
     },
     cutout: "65%"
   };
-
-  const habitRows = habitsData?.habitMatrix || [];
-  const habitDays =
-    habitsData?.days || habitRows?.[0]?.days?.length || dashboard.dailyCounts?.length || 0;
   const habitSummary = useMemo(() => {
     return habitRows
       .map((row) => {
@@ -315,6 +376,9 @@ export default function DashboardPage({ initialDashboard, initialHabits }) {
             subtitle="A calm overview of habit momentum, with soft gradients and gentle progress cues."
             actions={
               <div className={styles.headerActions}>
+                <Link className={styles.sleepLink} href="/sleep">
+                  Sleep Studio
+                </Link>
                 <button className={styles.dateButton} type="button">
                   {monthLabel}
                 </button>
@@ -336,7 +400,7 @@ export default function DashboardPage({ initialDashboard, initialHabits }) {
             <StatCard
               label="Success Rate"
               value={`${dashboard.stats.successRate}%`}
-              detail={`Good ${successTrend}`}
+              detail={`${successLabel} ${successTrend}`}
             />
             <StatCard label="Streak" value={`${dashboard.stats.streakDays} Days`} detail="Consistency streak" />
             <StatCard
@@ -358,7 +422,7 @@ export default function DashboardPage({ initialDashboard, initialHabits }) {
                 <h3>All Habits Overview</h3>
                 <div className={styles.overviewValue}>{successRate}%</div>
                 <div className={styles.overviewTag}>
-                  <span /> Good {successTrend}
+                  <span style={{ background: successColor }} /> {successLabel} {successTrend}
                 </div>
                 <div style={{ height: 180, marginTop: 8 }}>
                   <DoughnutChart data={doughnutData} options={doughnutOptions} />
@@ -366,15 +430,15 @@ export default function DashboardPage({ initialDashboard, initialHabits }) {
                 <div className={styles.legendRow}>
                   <div className={styles.legendItem}>
                     <span className={styles.legendSwatch} style={{ background: "#A9C1A2" }} />
-                    Good {successRate}%
+                    Good {overviewBreakdown.good}%
                   </div>
                   <div className={styles.legendItem}>
                     <span className={styles.legendSwatch} style={{ background: "#D8C7B2" }} />
-                    On Track {onTrack}%
+                    On Track {overviewBreakdown.onTrack}%
                   </div>
                   <div className={styles.legendItem}>
                     <span className={styles.legendSwatch} style={{ background: "#E8DED2" }} />
-                    Needs Focus {needsFocus}%
+                    Needs Focus {overviewBreakdown.needsFocus}%
                   </div>
                 </div>
               </div>
@@ -448,26 +512,24 @@ export default function DashboardPage({ initialDashboard, initialHabits }) {
                 <h3>Analysis</h3>
                 <div className={styles.analysisList}>
                   <div className={styles.analysisRow}>
-                    <span className={styles.analysisDot} style={{ background: "#A9C1A2" }} />
+                    <span className={styles.analysisDot} style={{ background: successColor }} />
                     <div>
-                      <strong>Good: {successRate}%</strong>
+                      <strong>{successLabel}: {successRate}%</strong>
                       <span className={styles.analysisMeta}>{successTrend} since last week</span>
                     </div>
                   </div>
                   <div className={styles.analysisRow}>
                     <span className={styles.analysisDot} style={{ background: "#D8C7B2" }} />
                     <div>
-                      <strong>On Track: {onTrack}%</strong>
-                      <span className={styles.analysisMeta}>Maintaining consistency</span>
+                      <strong>On Track: {overviewBreakdown.onTrack}%</strong>
+                      <span className={styles.analysisMeta}>Steady progress habits</span>
                     </div>
                   </div>
                   <div className={styles.analysisRow}>
                     <span className={styles.analysisDot} style={{ background: "#E8DED2" }} />
                     <div>
-                      <strong>Progress: {todayProgress}%</strong>
-                      <span className={styles.analysisMeta}>
-                        {dashboard.stats.completedHabits}/{totalHabits} completed today
-                      </span>
+                      <strong>Needs Focus: {overviewBreakdown.needsFocus}%</strong>
+                      <span className={styles.analysisMeta}>Gentle attention needed</span>
                     </div>
                   </div>
                 </div>
@@ -481,7 +543,9 @@ export default function DashboardPage({ initialDashboard, initialHabits }) {
                 </div>
                 <div className={styles.analysisFoot}>
                   <span>Streak: {dashboard.stats.streakDays} Days</span>
-                  <span>Active habits: {totalHabits}</span>
+                  <span>
+                    Today: {dashboard.stats.completedHabits}/{totalHabits} completed
+                  </span>
                 </div>
               </div>
             </aside>

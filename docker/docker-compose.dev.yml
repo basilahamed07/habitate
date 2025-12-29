@@ -1,15 +1,15 @@
 services:
   db:
     image: postgres:15
-    container_name: habitat_db_dev
+    container_name: habitat_db_test
     ports:
       - "5432:5432"
     environment:
-      POSTGRES_DB: habits
+      POSTGRES_DB: habits_test
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: postgres
     volumes:
-      - pgdata_dev:/var/lib/postgresql/data
+      - pgdata_test:/var/lib/postgresql/data
 
   api:
     build:
@@ -19,7 +19,7 @@ services:
     ports:
       - "8000:8000"
     environment:
-      DATABASE_URL: postgresql+psycopg2://postgres:postgres@db:5432/habits
+      DATABASE_URL: postgresql+psycopg2://postgres:postgres@db:5432/habits_test
       SECRET_KEY: change_me
       CORS_ORIGINS: "*"
     depends_on:
@@ -27,6 +27,8 @@ services:
     volumes:
       - ../backend/app:/app/app
       - ../backend/app/logs:/app/app/logs
+      - ../backend/alembic:/app/alembic
+      - ../backend/alembic.ini:/app/alembic.ini
 
   web:
     build:
@@ -36,12 +38,12 @@ services:
     ports:
       - "3000:3000"
     environment:
-      NEXT_PUBLIC_API_BASE: http://localhost:8000/api
+      NEXT_PUBLIC_API_BASE: http://192.168.1.43:8000/api
     depends_on:
       - api
     volumes:
-      - ../:/app
+      - ../froentend:/app
       - /app/node_modules
 
 volumes:
-  pgdata_dev:
+  pgdata_test:

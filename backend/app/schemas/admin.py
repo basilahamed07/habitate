@@ -13,6 +13,20 @@ class ReportHabit(BaseModel):
     total: int
 
 
+class SleepTopper(BaseModel):
+    name: str
+    email: str
+    averageHours: float
+    totalEntries: int
+
+
+class SleepReport(BaseModel):
+    averageHours: float
+    totalEntries: int
+    totalHours: float
+    topSleepers: list[SleepTopper]
+
+
 class AdminReport(BaseModel):
     totalUsers: int
     totalHabits: int
@@ -22,3 +36,4 @@ class AdminReport(BaseModel):
     successTrend: str
     dailyCounts: list[int]
     topHabits: list[ReportHabit]
+    sleepReport: SleepReport

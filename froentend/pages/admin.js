@@ -26,6 +26,39 @@ const fallbackAdmin = {
   total: fallbackUsers.length
 };
 
+const computeOverviewBreakdown = (rows, windowDays = 7) => {
+  if (!rows?.length) {
+    return { good: 0, onTrack: 0, needsFocus: 0 };
+  }
+  let good = 0;
+  let onTrack = 0;
+  let needsFocus = 0;
+  rows.forEach((row) => {
+    const days = row.days || [];
+    const sliceLength = Math.min(windowDays, days.length);
+    if (sliceLength === 0) {
+      needsFocus += 1;
+      return;
+    }
+    const recent = days.slice(-sliceLength);
+    const completed = recent.filter(Boolean).length;
+    const rate = (completed / sliceLength) * 100;
+    if (rate >= 70) {
+      good += 1;
+    } else if (rate >= 40) {
+      onTrack += 1;
+    } else {
+      needsFocus += 1;
+    }
+  });
+  const total = rows.length;
+  return {
+    good: Math.round((good / total) * 100),
+    onTrack: Math.round((onTrack / total) * 100),
+    needsFocus: Math.round((needsFocus / total) * 100)
+  };
+};
+
 export default function AdminPage({ initialUsers, initialStats }) {
   const [isAuthed, setIsAuthed] = useState(false);
   const [authChecked, setAuthChecked] = useState(false);
@@ -50,6 +83,12 @@ export default function AdminPage({ initialUsers, initialStats }) {
   const [analysisUser, setAnalysisUser] = useState(null);
   const [analysisStats, setAnalysisStats] = useState(null);
   const [analysisHabits, setAnalysisHabits] = useState([]);
+  const [analysisSleep, setAnalysisSleep] = useState(null);
+  const [analysisBreakdown, setAnalysisBreakdown] = useState({
+    good: 0,
+    onTrack: 0,
+    needsFocus: 0
+  });
   const [password, setPassword] = useState("");
   const [passwordStatus, setPasswordStatus] = useState("");
   const [reportOpen, setReportOpen] = useState(false);
@@ -222,9 +261,12 @@ export default function AdminPage({ initialUsers, initialStats }) {
     setPasswordStatus("");
     setAnalysisStats(null);
     setAnalysisHabits([]);
+    setAnalysisBreakdown({ good: 0, onTrack: 0, needsFocus: 0 });
+    setAnalysisSleep(null);
     const queryKey = `?userId=${encodeURIComponent(String(user.id))}`;
     const dashboard = await safeFetchJson(`/dashboard${queryKey}`, null);
     const habits = await safeFetchJson(`/habits${queryKey}`, null);
+    const sleep = await safeFetchJson(`/sleep${queryKey}`, null);
     if (dashboard) {
       setAnalysisStats(dashboard.stats);
     }
@@ -237,6 +279,10 @@ export default function AdminPage({ initialUsers, initialStats }) {
         .sort((a, b) => b.total - a.total)
         .slice(0, 4);
       setAnalysisHabits(summary);
+      setAnalysisBreakdown(computeOverviewBreakdown(habits.habitMatrix, 7));
+    }
+    if (sleep?.entries) {
+      setAnalysisSleep(sleep);
     }
   };
 
@@ -266,15 +312,15 @@ export default function AdminPage({ initialUsers, initialStats }) {
     }
   };
 
-  const analysisRate = analysisStats?.successRate ?? 0;
-  const analysisRemainder = Math.max(0, 100 - analysisRate);
-  const analysisOnTrack = Math.round(analysisRemainder * 0.6);
-  const analysisNeedsFocus = analysisRemainder - analysisOnTrack;
   const analysisChartData = {
     labels: ["Good", "On Track", "Needs Focus"],
     datasets: [
       {
-        data: [analysisRate, analysisOnTrack, analysisNeedsFocus],
+        data: [
+          analysisBreakdown.good,
+          analysisBreakdown.onTrack,
+          analysisBreakdown.needsFocus
+        ],
         backgroundColor: ["#A9C1A2", "#D8C7B2", "#E8DED2"],
         borderWidth: 0
       }
@@ -293,6 +339,8 @@ export default function AdminPage({ initialUsers, initialStats }) {
   const reportCompleted = reportData?.totalCompleted ?? 0;
   const reportRemaining = Math.max(0, (reportData?.totalSlots ?? 0) - reportCompleted);
   const reportTopHabits = reportData?.topHabits || [];
+  const sleepReport = reportData?.sleepReport;
+  const topSleepers = sleepReport?.topSleepers || [];
   const monthLabel = new Date().toLocaleString("en-US", { month: "long", year: "numeric" });
   const reportTopChartData = {
     labels: reportTopHabits.map((habit) => habit.name),
@@ -462,58 +510,60 @@ export default function AdminPage({ initialUsers, initialStats }) {
             </button>
           </div>
 
-          <table className={styles.table}>
-            <thead>
-              <tr>
-                <th>User</th>
-                <th>Status</th>
-                <th>Habits</th>
-                <th>Joined</th>
-                <th>Email</th>
-                <th>Action</th>
-              </tr>
-            </thead>
-            <tbody>
-              {pageUsers.map((user) => (
-                <tr key={user.id} onClick={() => openAnalysis(user)}>
-                  <td>{user.name}</td>
-                  <td>
-                    <span
-                      className={`${styles.badge} ${
-                        user.status === "Paused" ? styles.badgePaused : ""
-                      }`}
-                    >
-                      {user.status}
-                    </span>
-                  </td>
-                  <td>{user.habits}</td>
-                  <td>{user.joined}</td>
-                  <td>{user.email}</td>
-                  <td>
-                    <div className={styles.actionButtons}>
-                      <button
-                        className={styles.actionButton}
-                        type="button"
-                        onClick={(event) => {
-                          event.stopPropagation();
-                          openEditModal(user);
-                        }}
-                      >
-                        Edit
-                      </button>
-                      <button
-                        className={styles.actionButton}
-                        type="button"
-                        onClick={(event) => event.stopPropagation()}
-                      >
-                        Delete
-                      </button>
-                    </div>
-                  </td>
+          <div className={styles.tableWrapper}>
+            <table className={styles.table}>
+              <thead>
+                <tr>
+                  <th>User</th>
+                  <th>Status</th>
+                  <th>Habits</th>
+                  <th>Joined</th>
+                  <th>Email</th>
+                  <th>Action</th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
+              </thead>
+              <tbody>
+                {pageUsers.map((user) => (
+                  <tr key={user.id} onClick={() => openAnalysis(user)}>
+                    <td>{user.name}</td>
+                    <td>
+                      <span
+                        className={`${styles.badge} ${
+                          user.status === "Paused" ? styles.badgePaused : ""
+                        }`}
+                      >
+                        {user.status}
+                      </span>
+                    </td>
+                    <td>{user.habits}</td>
+                    <td>{user.joined}</td>
+                    <td>{user.email}</td>
+                    <td>
+                      <div className={styles.actionButtons}>
+                        <button
+                          className={styles.actionButton}
+                          type="button"
+                          onClick={(event) => {
+                            event.stopPropagation();
+                            openEditModal(user);
+                          }}
+                        >
+                          Edit
+                        </button>
+                        <button
+                          className={styles.actionButton}
+                          type="button"
+                          onClick={(event) => event.stopPropagation()}
+                        >
+                          Delete
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
 
           <div className={styles.pagination}>
             <div>
@@ -639,15 +689,15 @@ export default function AdminPage({ initialUsers, initialStats }) {
                   <div className={styles.modalLegend}>
                     <div className={styles.modalLegendItem}>
                       <span className={styles.modalLegendSwatch} style={{ background: "#A9C1A2" }} />
-                      Good {analysisRate}%
+                      Good {analysisBreakdown.good}%
                     </div>
                     <div className={styles.modalLegendItem}>
                       <span className={styles.modalLegendSwatch} style={{ background: "#D8C7B2" }} />
-                      On Track {analysisOnTrack}%
+                      On Track {analysisBreakdown.onTrack}%
                     </div>
                     <div className={styles.modalLegendItem}>
                       <span className={styles.modalLegendSwatch} style={{ background: "#E8DED2" }} />
-                      Needs Focus {analysisNeedsFocus}%
+                      Needs Focus {analysisBreakdown.needsFocus}%
                     </div>
                   </div>
                 </div>
@@ -662,6 +712,30 @@ export default function AdminPage({ initialUsers, initialStats }) {
                   ) : (
                     <p className={styles.modalEmpty}>No habit data yet.</p>
                   )}
+                </div>
+              </div>
+              <div className={styles.modalSection}>
+                <h4>Sleep Ratio</h4>
+                <div className={styles.sleepStats}>
+                  <div>
+                    <span className={styles.modalLabel}>Average</span>
+                    <strong>{analysisSleep?.averageHours ?? "--"} hrs</strong>
+                  </div>
+                  <div>
+                    <span className={styles.modalLabel}>Best Night</span>
+                    <strong>{analysisSleep?.bestSleep ?? "--"} hrs</strong>
+                  </div>
+                  <div>
+                    <span className={styles.modalLabel}>Consistency</span>
+                    <strong>
+                      {analysisSleep
+                        ? `${Math.min(
+                            100,
+                            Math.round((analysisSleep.averageHours / 8) * 100)
+                          )}%`
+                        : "--"}
+                    </strong>
+                  </div>
                 </div>
               </div>
             </div>
@@ -851,6 +925,14 @@ export default function AdminPage({ initialUsers, initialStats }) {
                   <span>Success Rate</span>
                   <strong>{reportData.successRate}%</strong>
                 </div>
+                <div className={styles.reportStat}>
+                  <span>Total Sleep Hours</span>
+                  <strong>{sleepReport?.totalHours ?? 0}</strong>
+                </div>
+                <div className={styles.reportStat}>
+                  <span>Average Sleep</span>
+                  <strong>{sleepReport?.averageHours ?? 0} hrs</strong>
+                </div>
               </div>
               <div className={styles.reportTopChartCard}>
                 <h4>Top Habits</h4>
@@ -882,6 +964,25 @@ export default function AdminPage({ initialUsers, initialStats }) {
                       <span>{habit.total} completions</span>
                     </div>
                   ))}
+                </div>
+              </div>
+              <div className={styles.reportTopCard}>
+                <h4>Top Sleepers</h4>
+                <div className={styles.reportMeta}>
+                  <span>Average: {sleepReport?.averageHours ?? 0} hrs</span>
+                  <span>Total logs: {sleepReport?.totalEntries ?? 0}</span>
+                </div>
+                <div className={styles.reportTopList}>
+                  {topSleepers.length > 0 ? (
+                    topSleepers.map((sleeper) => (
+                      <div key={sleeper.email} className={styles.reportTopRow}>
+                        <span>{sleeper.name}</span>
+                        <span>{sleeper.averageHours} hrs</span>
+                      </div>
+                    ))
+                  ) : (
+                    <span className={styles.reportEmpty}>No sleep data yet.</span>
+                  )}
                 </div>
               </div>
             </div>

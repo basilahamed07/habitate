@@ -12,6 +12,26 @@
   gap: 12px;
 }
 
+.sleepLink {
+  padding: 8px 14px;
+  border-radius: 999px;
+  border: 1px solid rgba(140, 170, 190, 0.6);
+  background: linear-gradient(140deg, rgba(146, 186, 210, 0.9), rgba(224, 236, 246, 0.9));
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #26414f;
+  text-decoration: none;
+  box-shadow: 0 10px 20px rgba(114, 140, 166, 0.25);
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.sleepLink:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 14px 24px rgba(114, 140, 166, 0.35);
+}
+
 
 .dateButton {
   padding: 8px 14px;

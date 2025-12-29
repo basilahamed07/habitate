@@ -9,6 +9,7 @@ from app.models.habit_monthly_bits import HabitMonthlyBits
 from app.models.user import User
 
 DAYS = min(settings.TRACK_WINDOW_DAYS, 31)
+STREAK_TARGET = 0.8
 
 progress_bars = [
     {"label": "Hydration", "value": 78},
@@ -178,17 +179,20 @@ def get_dashboard(db: Session, user_id: int) -> dict:
     bits_map = _load_month_bits(db, [habit.id for habit in habits], months)
     habit_matrix = _build_habit_matrix(habits, bits_map, window_dates)
     daily_counts, completed = _get_daily_counts(habit_matrix)
-    total_slots = len(habit_matrix) * DAYS
+    total_habits = len(habit_matrix)
+    total_slots = total_habits * DAYS
     success_rate = round((completed / total_slots) * 100) if total_slots else 0
-    success_trend = _calculate_success_trend(daily_counts, len(habit_matrix))
+    success_trend = _calculate_success_trend(daily_counts, total_habits)
     today_index = DAYS - 1
     completed_habits = daily_counts[today_index] if daily_counts else 0
     streak_days = 0
-    for day_index in range(DAYS - 1, -1, -1):
-        if daily_counts[day_index] > 0:
-            streak_days += 1
-        else:
-            break
+    if total_habits > 0:
+        for day_index in range(DAYS - 1, -1, -1):
+            daily_rate = daily_counts[day_index] / total_habits
+            if daily_rate >= STREAK_TARGET:
+                streak_days += 1
+            else:
+                break
 
     active_users = db.query(User).filter(User.status == "active").count()
     total_habits_tracked = db.query(Habit).filter(Habit.is_active.is_(True)).count()
@@ -198,7 +202,7 @@ def get_dashboard(db: Session, user_id: int) -> dict:
         "successTrend": success_trend,
         "streakDays": streak_days,
         "completedHabits": completed_habits,
-        "totalHabits": len(habit_matrix),
+        "totalHabits": total_habits,
         "activeUsers": active_users,
         "totalHabitsTracked": total_habits_tracked
     }

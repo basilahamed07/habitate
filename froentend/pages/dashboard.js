@@ -9,7 +9,7 @@ import ChartCard from "../components/ChartCard";
 import HabitTable from "../components/HabitTable";
 import SiteHeader from "../components/SiteHeader";
 import StatCard from "../components/StatCard";
-import { deleteJson, getAuthToken, postJson, safeFetchJson } from "../lib/api";
+import { deleteJson, postJson, safeFetchJson } from "../lib/api";
 import {
   dashboardStats,
   progressBars as fallbackProgress,
@@ -26,23 +26,49 @@ const DoughnutChart = dynamic(
   () => import("../components/Charts").then((mod) => mod.DoughnutChart),
   { ssr: false }
 );
-
-const fallbackDashboard = {
-  stats: dashboardStats,
-  progressBars: fallbackProgress,
-  dailyCounts: fallbackCounts,
-  successRate: dashboardStats.successRate
-};
-
-const fallbackHabits = {
-  habitMatrix,
-  days: fallbackDays
-};
+const BarChart = dynamic(() => import("../components/Charts").then((mod) => mod.BarChart), {
+  ssr: false
+});
 
 const SUCCESS_LABELS = {
   good: "Good",
   onTrack: "On Track",
   needsFocus: "Needs Focus"
+};
+
+const formatMonthKey = (value) => {
+  const year = value.getFullYear();
+  const month = String(value.getMonth() + 1).padStart(2, "0");
+  return `${year}-${month}`;
+};
+
+const formatMonthLabel = (key) => {
+  if (!key) {
+    return "";
+  }
+  const [year, month] = key.split("-");
+  const date = new Date(Number(year), Number(month) - 1, 1);
+  if (Number.isNaN(date.getTime())) {
+    return key;
+  }
+  return date.toLocaleString("en-US", { month: "long", year: "numeric" });
+};
+
+const fallbackMonth = formatMonthKey(new Date());
+const fallbackDashboard = {
+  stats: dashboardStats,
+  progressBars: fallbackProgress,
+  dailyCounts: fallbackCounts,
+  successRate: dashboardStats.successRate,
+  month: fallbackMonth,
+  availableMonths: [fallbackMonth]
+};
+
+const fallbackHabits = {
+  habitMatrix,
+  days: fallbackDays,
+  month: fallbackMonth,
+  availableMonths: [fallbackMonth]
 };
 
 const getSuccessLabel = (rate) => {
@@ -100,8 +126,15 @@ const computeOverviewBreakdown = (rows, windowDays = 7) => {
 
 export default function DashboardPage({ initialDashboard, initialHabits }) {
   const router = useRouter();
+  const currentMonthKey = useMemo(() => formatMonthKey(new Date()), []);
   const [dashboard, setDashboard] = useState(initialDashboard);
   const [habitsData, setHabitsData] = useState(initialHabits);
+  const [selectedMonth, setSelectedMonth] = useState(
+    initialHabits?.month || initialDashboard?.month || currentMonthKey
+  );
+  const [availableMonths, setAvailableMonths] = useState(
+    initialHabits?.availableMonths || [currentMonthKey]
+  );
   const [userProfile, setUserProfile] = useState(null);
   const [isAdding, setIsAdding] = useState(false);
   const [newHabit, setNewHabit] = useState("");
@@ -112,26 +145,38 @@ export default function DashboardPage({ initialDashboard, initialHabits }) {
 
   useEffect(() => {
     let isMounted = true;
-    const token = getAuthToken();
-    if (!token) {
-      router.push("/login");
-      return () => {
-        isMounted = false;
-      };
-    }
-
     const load = async () => {
       setIsLoading(true);
-      const nextDashboard = await safeFetchJson("/dashboard", initialDashboard);
-      const nextHabits = await safeFetchJson("/habits", initialHabits);
+      const monthQuery = selectedMonth ? `?month=${encodeURIComponent(selectedMonth)}` : "";
+      const nextDashboard = await safeFetchJson(`/dashboard${monthQuery}`, initialDashboard);
+      const nextHabits = await safeFetchJson(`/habits${monthQuery}`, initialHabits);
       const nextProfile = await safeFetchJson("/users/me", null);
 
-      if (isMounted) {
-        setDashboard(nextDashboard);
-        setHabitsData(nextHabits);
-        setUserProfile(nextProfile);
-        setIsLoading(false);
+      if (!isMounted) {
+        return;
       }
+      if (!nextProfile) {
+        router.push("/login");
+        return;
+      }
+      if (nextProfile.status === "pending_reset") {
+        router.push("/profile?reset=1");
+        return;
+      }
+      setDashboard(nextDashboard);
+      setHabitsData(nextHabits);
+      setUserProfile(nextProfile);
+      const monthsFromApi = nextHabits?.availableMonths || nextDashboard?.availableMonths || [];
+      const normalizedMonths = Array.from(
+        new Set([currentMonthKey, ...monthsFromApi])
+      );
+      setAvailableMonths(normalizedMonths);
+      if (nextHabits?.month && nextHabits.month !== selectedMonth) {
+        setSelectedMonth(nextHabits.month);
+      } else if (!normalizedMonths.includes(selectedMonth)) {
+        setSelectedMonth(currentMonthKey);
+      }
+      setIsLoading(false);
     };
 
     load();
@@ -139,7 +184,7 @@ export default function DashboardPage({ initialDashboard, initialHabits }) {
     return () => {
       isMounted = false;
     };
-  }, [initialDashboard, initialHabits, router]);
+  }, [currentMonthKey, initialDashboard, initialHabits, router, selectedMonth]);
 
   useEffect(() => {
     if (!loaderRef.current) {
@@ -177,13 +222,30 @@ export default function DashboardPage({ initialDashboard, initialHabits }) {
     }
   }, [isLoading]);
 
+  const isCurrentMonth = selectedMonth === currentMonthKey;
+
   const refreshDashboard = async () => {
-    const nextDashboard = await safeFetchJson("/dashboard", dashboard);
+    const monthQuery = selectedMonth ? `?month=${encodeURIComponent(selectedMonth)}` : "";
+    const nextDashboard = await safeFetchJson(`/dashboard${monthQuery}`, dashboard);
     setDashboard(nextDashboard);
+  };
+
+  const handleMonthChange = (event) => {
+    setSelectedMonth(event.target.value);
+  };
+
+  const handleDownloadPdf = () => {
+    if (typeof window === "undefined") {
+      return;
+    }
+    window.print();
   };
 
   const handleToggle = async (habitId, dayIndex) => {
     if (habitId === undefined || habitId === null) {
+      return;
+    }
+    if (!isCurrentMonth) {
       return;
     }
     const previous = habitsData;
@@ -198,11 +260,15 @@ export default function DashboardPage({ initialDashboard, initialHabits }) {
       nextDays[dayIndex] = !nextDays[dayIndex];
       return { ...habit, days: nextDays };
     });
-    setHabitsData({ habitMatrix: updatedMatrix, days: previous.days });
+    setHabitsData({ ...previous, habitMatrix: updatedMatrix });
 
-    const result = await postJson(`/habits/${habitId}/toggle`, { dayIndex });
+    const result = await postJson(`/habits/${habitId}/toggle`, {
+      dayIndex,
+      month: selectedMonth
+    });
     if (result?.habitMatrix) {
       setHabitsData({
+        ...previous,
         habitMatrix: result.habitMatrix,
         days: previous.days || result.habitMatrix?.[0]?.days?.length || 0
       });
@@ -214,13 +280,14 @@ export default function DashboardPage({ initialDashboard, initialHabits }) {
 
   const handleAddHabit = async () => {
     const trimmed = newHabit.trim();
-    if (!trimmed || isSaving) {
+    if (!trimmed || isSaving || !isCurrentMonth) {
       return;
     }
     setIsSaving(true);
     const result = await postJson("/habits", { name: trimmed });
     if (result?.habitMatrix) {
       setHabitsData({
+        ...habitsData,
         habitMatrix: result.habitMatrix,
         days: habitsData?.days || result.habitMatrix?.[0]?.days?.length || 0
       });
@@ -232,7 +299,7 @@ export default function DashboardPage({ initialDashboard, initialHabits }) {
   };
 
   const handleDeleteHabit = async (habitId) => {
-    if (!habitId) {
+    if (!habitId || !isCurrentMonth) {
       return;
     }
     const previous = habitsData;
@@ -303,7 +370,7 @@ export default function DashboardPage({ initialDashboard, initialHabits }) {
     habitsData?.days || habitRows?.[0]?.days?.length || dashboard.dailyCounts?.length || 0;
   const successRate = dashboard.successRate || dashboard.stats.successRate;
   const successTrend = dashboard.stats.successTrend || "+0%";
-  const monthLabel = new Date().toLocaleString("en-US", { month: "long", year: "numeric" });
+  const monthLabel = formatMonthLabel(selectedMonth || currentMonthKey);
   const avatarSrc = userProfile?.avatarUrl || "/avatars/user-01.svg";
   const overviewBreakdown = useMemo(
     () => computeOverviewBreakdown(habitRows, Math.min(7, habitDays || 7)),
@@ -340,6 +407,59 @@ export default function DashboardPage({ initialDashboard, initialHabits }) {
       .sort((a, b) => b.total - a.total)
       .slice(0, 3);
   }, [habitRows]);
+  const reportHabits = useMemo(() => {
+    return habitRows
+      .map((row) => {
+        const total = row.days?.filter(Boolean).length || 0;
+        return { name: row.habit, total };
+      })
+      .sort((a, b) => b.total - a.total)
+      .slice(0, 6);
+  }, [habitRows]);
+  const reportBarData = {
+    labels: reportHabits.map((item) => item.name),
+    datasets: [
+      {
+        label: "Completions",
+        data: reportHabits.map((item) => item.total),
+        borderRadius: 10,
+        backgroundColor: (context) => {
+          const { chart } = context;
+          if (!chart) {
+            return "rgba(183, 204, 175, 0.85)";
+          }
+          const gradient = chart.ctx.createLinearGradient(0, 0, 220, 0);
+          gradient.addColorStop(0, "rgba(183, 204, 175, 0.8)");
+          gradient.addColorStop(1, "rgba(128, 152, 117, 0.8)");
+          return gradient;
+        }
+      }
+    ]
+  };
+  const reportBarOptions = {
+    responsive: true,
+    maintainAspectRatio: false,
+    plugins: {
+      legend: { display: false }
+    },
+    scales: {
+      x: {
+        grid: { display: false },
+        ticks: { color: "#8a8278" }
+      },
+      y: {
+        grid: { color: "rgba(210, 203, 192, 0.5)" },
+        ticks: { color: "#8a8278" }
+      }
+    }
+  };
+  const monthCompleted = useMemo(() => {
+    return habitRows.reduce((total, row) => {
+      const completed = row.days?.filter(Boolean).length || 0;
+      return total + completed;
+    }, 0);
+  }, [habitRows]);
+  const monthTotalSlots = habitRows.length * (habitDays || 0);
   const totalHabits = dashboard.stats.totalHabits || habitRows.length;
   const todayProgress =
     totalHabits > 0 ? Math.round((dashboard.stats.completedHabits / totalHabits) * 100) : 0;
@@ -379,9 +499,23 @@ export default function DashboardPage({ initialDashboard, initialHabits }) {
                 <Link className={styles.sleepLink} href="/sleep">
                   Sleep Studio
                 </Link>
-                <button className={styles.dateButton} type="button">
-                  {monthLabel}
-                </button>
+                <div className={styles.monthPicker}>
+                  <select
+                    className={styles.monthSelect}
+                    aria-label="Select month"
+                    value={selectedMonth}
+                    onChange={handleMonthChange}
+                  >
+                    {availableMonths.map((month) => (
+                      <option key={month} value={month}>
+                        {formatMonthLabel(month)}
+                      </option>
+                    ))}
+                  </select>
+                  {!isCurrentMonth ? (
+                    <span className={styles.readOnlyBadge}>Read-only</span>
+                  ) : null}
+                </div>
                 <Link className={styles.profileLink} href="/profile" aria-label="Open user panel">
                   <Image
                     className={styles.avatar}
@@ -463,40 +597,55 @@ export default function DashboardPage({ initialDashboard, initialHabits }) {
           <section className={styles.lowerGrid}>
             <div className={styles.tableBlock}>
               <div className={styles.tableHeader}>
-                <h3>Habit Tracking</h3>
-                {isAdding ? (
-                  <div className={styles.addHabitForm}>
-                    <input
-                      className={styles.addInput}
-                      placeholder="New habit name"
-                      aria-label="New habit name"
-                      value={newHabit}
-                      onChange={(event) => setNewHabit(event.target.value)}
-                    />
-                    <div className={styles.addActions}>
-                      <button
-                        className={styles.addButton}
-                        type="button"
-                        onClick={handleAddHabit}
-                        disabled={isSaving || !newHabit.trim()}
-                      >
-                        Save
-                      </button>
-                      <button
-                        className={styles.secondaryButton}
-                        type="button"
-                        onClick={() => {
-                          setIsAdding(false);
-                          setNewHabit("");
-                        }}
-                      >
-                        Cancel
-                      </button>
+                <div className={styles.tableTitle}>
+                  <h3>Habit Tracking</h3>
+                  {!isCurrentMonth ? (
+                    <span className={styles.readOnlyNote}>Past months are view only.</span>
+                  ) : null}
+                </div>
+                {isCurrentMonth ? (
+                  isAdding ? (
+                    <div className={styles.addHabitForm}>
+                      <input
+                        className={styles.addInput}
+                        placeholder="New habit name"
+                        aria-label="New habit name"
+                        value={newHabit}
+                        onChange={(event) => setNewHabit(event.target.value)}
+                      />
+                      <div className={styles.addActions}>
+                        <button
+                          className={styles.addButton}
+                          type="button"
+                          onClick={handleAddHabit}
+                          disabled={isSaving || !newHabit.trim()}
+                        >
+                          Save
+                        </button>
+                        <button
+                          className={styles.secondaryButton}
+                          type="button"
+                          onClick={() => {
+                            setIsAdding(false);
+                            setNewHabit("");
+                          }}
+                        >
+                          Cancel
+                        </button>
+                      </div>
                     </div>
-                  </div>
+                  ) : (
+                    <button
+                      className={styles.addButton}
+                      type="button"
+                      onClick={() => setIsAdding(true)}
+                    >
+                      + Add Habit
+                    </button>
+                  )
                 ) : (
-                  <button className={styles.addButton} type="button" onClick={() => setIsAdding(true)}>
-                    + Add Habit
+                  <button className={styles.addButton} type="button" disabled>
+                    Editing Locked
                   </button>
                 )}
               </div>
@@ -505,6 +654,7 @@ export default function DashboardPage({ initialDashboard, initialHabits }) {
                 dayCount={habitDays}
                 onToggle={handleToggle}
                 onDelete={handleDeleteHabit}
+                readOnly={!isCurrentMonth}
               />
             </div>
             <aside className={styles.sidePanel}>
@@ -544,8 +694,49 @@ export default function DashboardPage({ initialDashboard, initialHabits }) {
                 <div className={styles.analysisFoot}>
                   <span>Streak: {dashboard.stats.streakDays} Days</span>
                   <span>
-                    Today: {dashboard.stats.completedHabits}/{totalHabits} completed
+                    {isCurrentMonth ? "Today" : "Last day"}: {dashboard.stats.completedHabits}/
+                    {totalHabits} completed
                   </span>
+                </div>
+              </div>
+              <div className={styles.reportCard}>
+                <div className={styles.reportHeader}>
+                  <div>
+                    <h3>Monthly Report</h3>
+                    <span className={styles.reportMeta}>{monthLabel}</span>
+                  </div>
+                  <button
+                    className={styles.reportButton}
+                    type="button"
+                    onClick={handleDownloadPdf}
+                  >
+                    Download PDF
+                  </button>
+                </div>
+                <div className={styles.reportChart}>
+                  {reportHabits.length > 0 ? (
+                    <BarChart data={reportBarData} options={reportBarOptions} />
+                  ) : (
+                    <p className={styles.reportEmpty}>No habit data yet.</p>
+                  )}
+                </div>
+                <div className={styles.reportSummary}>
+                  <div>
+                    <strong>{monthCompleted}</strong>
+                    <span>Completions</span>
+                  </div>
+                  <div>
+                    <strong>{totalHabits}</strong>
+                    <span>Habits tracked</span>
+                  </div>
+                  <div>
+                    <strong>{dashboard.stats.successRate}%</strong>
+                    <span>Success rate</span>
+                  </div>
+                  <div>
+                    <strong>{monthTotalSlots}</strong>
+                    <span>Total slots</span>
+                  </div>
                 </div>
               </div>
             </aside>

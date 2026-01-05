@@ -1,4 +1,5 @@
-from datetime import date, timedelta
+from datetime import date, datetime, timedelta
+import calendar
 
 from sqlalchemy import func
 from sqlalchemy.orm import Session
@@ -16,6 +17,37 @@ BUCKETS = [
     {"label": "7-9 hrs", "min": 7.0, "max": 9.0},
     {"label": "9+ hrs", "min": 9.0, "max": None}
 ]
+
+
+def _month_start(value: date) -> date:
+    return value.replace(day=1)
+
+
+def _format_month(value: date) -> str:
+    return value.strftime("%Y-%m")
+
+
+def _parse_month(value: str | None) -> date:
+    if not value:
+        return _month_start(date.today())
+    parsed = datetime.strptime(value, "%Y-%m").date()
+    return _month_start(parsed)
+
+
+def parse_month(value: str | None) -> date:
+    return _parse_month(value)
+
+
+def month_start(value: date) -> date:
+    return _month_start(value)
+
+
+def _month_days(value: date) -> int:
+    return calendar.monthrange(value.year, value.month)[1]
+
+
+def month_days(value: date) -> int:
+    return _month_days(value)
 
 
 def _get_window_dates() -> list[date]:
@@ -37,16 +69,31 @@ def _bucket_for_hours(hours: float) -> int:
     return 0
 
 
-def list_sleep(db: Session, user_id: int) -> dict:
-    window_dates = _get_window_dates()
-    start_date = window_dates[0]
-    end_date = window_dates[-1]
+def _get_available_months(db: Session, user_id: int) -> list[str]:
+    month_rows = (
+        db.query(SleepEntry.sleep_date)
+        .filter(SleepEntry.user_id == user_id)
+        .distinct()
+        .all()
+    )
+    months = {_month_start(row.sleep_date) for row in month_rows}
+    months.add(_month_start(date.today()))
+    return [_format_month(value) for value in sorted(months, reverse=True)]
+
+
+def list_sleep(db: Session, user_id: int, month: date | None = None) -> dict:
+    month_key = _month_start(month or date.today())
+    day_count = _month_days(month_key)
+    is_current = month_key == _month_start(date.today())
+    start_date = month_key
+    end_date = month_key.replace(day=day_count)
+    cutoff_date = date.today() if is_current else end_date
     rows = (
         db.query(SleepEntry)
         .filter(
             SleepEntry.user_id == user_id,
             SleepEntry.sleep_date >= start_date,
-            SleepEntry.sleep_date <= end_date
+            SleepEntry.sleep_date <= cutoff_date
         )
         .order_by(SleepEntry.sleep_date.asc())
         .all()
@@ -54,7 +101,8 @@ def list_sleep(db: Session, user_id: int) -> dict:
     entry_map = {row.sleep_date: row for row in rows}
     daily_hours = []
     day_buckets = []
-    for current_date in window_dates:
+    for day in range(1, day_count + 1):
+        current_date = month_key.replace(day=day)
         entry = entry_map.get(current_date)
         if entry:
             hours = float(entry.duration_hours)
@@ -101,7 +149,9 @@ def list_sleep(db: Session, user_id: int) -> dict:
         "averageHours": average_hours,
         "totalEntries": total_logged,
         "bestSleep": best_sleep,
-        "days": DAYS
+        "days": day_count,
+        "month": _format_month(month_key),
+        "availableMonths": _get_available_months(db, user_id)
     }
 
 

@@ -3,7 +3,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/router";
 import { useState } from "react";
-import { postJson, setAuthToken } from "../lib/api";
+import { postJson } from "../lib/api";
 import styles from "../styles/Login.module.css";
 
 export default function LoginPage() {
@@ -28,7 +28,10 @@ export default function LoginPage() {
       password: trimmedPassword
     });
     if (result?.access_token) {
-      setAuthToken(result.access_token);
+      if (result.reset_required) {
+        router.push("/profile?reset=1");
+        return;
+      }
       router.push("/dashboard");
       return;
     }

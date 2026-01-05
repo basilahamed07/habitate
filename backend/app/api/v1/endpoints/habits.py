@@ -13,14 +13,19 @@ router = APIRouter(prefix="/habits", tags=["habits"])
 async def list_habits(
     user=Depends(get_current_user),
     db: Session = Depends(get_db),
-    user_id: int | None = Query(default=None, alias="userId")
+    user_id: int | None = Query(default=None, alias="userId"),
+    month: str | None = Query(default=None)
 ) -> HabitsResponse:
     target_user_id = user.id
     if user_id is not None and user.role == "admin":
         if not user_service.get_user(db, user_id):
             raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="User not found")
         target_user_id = user_id
-    data = habit_service.list_habits(db, target_user_id)
+    try:
+        month_key = habit_service.parse_month(month)
+    except ValueError:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Invalid month format")
+    data = habit_service.list_habits(db, target_user_id, month_key)
     return HabitsResponse(**data)
 
 
@@ -43,9 +48,21 @@ async def toggle_habit(
     user=Depends(get_current_user),
     db: Session = Depends(get_db)
 ) -> dict:
-    if payload.dayIndex < 0 or payload.dayIndex >= habit_service.DAYS:
+    try:
+        month_key = habit_service.parse_month(payload.month)
+    except ValueError:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Invalid month format")
+    if month_key != habit_service.parse_month(None):
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Updates are only allowed for the current month"
+        )
+    day_count = habit_service.month_days(month_key)
+    if payload.dayIndex < 0 or payload.dayIndex >= day_count:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Invalid day index")
-    result = habit_service.toggle_habit(db, user.id, habit_id, payload.dayIndex, payload.done)
+    result = habit_service.toggle_habit(
+        db, user.id, habit_id, payload.dayIndex, payload.done, month_key
+    )
     if result is None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Habit not found")
     return result

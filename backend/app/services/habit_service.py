@@ -1,4 +1,5 @@
-from datetime import date, timedelta
+from datetime import date, datetime, timedelta
+import calendar
 from typing import Optional
 
 from sqlalchemy.orm import Session
@@ -21,6 +22,29 @@ progress_bars = [
 
 def _month_start(value: date) -> date:
     return value.replace(day=1)
+
+
+def _format_month(value: date) -> str:
+    return value.strftime("%Y-%m")
+
+
+def _parse_month(value: Optional[str]) -> date:
+    if not value:
+        return _month_start(date.today())
+    parsed = datetime.strptime(value, "%Y-%m").date()
+    return _month_start(parsed)
+
+
+def parse_month(value: Optional[str]) -> date:
+    return _parse_month(value)
+
+
+def month_days(value: date) -> int:
+    return _month_days(value)
+
+
+def _month_days(value: date) -> int:
+    return calendar.monthrange(value.year, value.month)[1]
 
 
 def _bits_to_list(bits_value: Optional[object]) -> list[bool]:
@@ -80,8 +104,24 @@ def _build_habit_matrix(
     return habit_matrix
 
 
-def _get_daily_counts(matrix: list[dict]) -> tuple[list[int], int]:
-    counts = [0] * DAYS
+def _build_month_matrix(
+    habits: list[Habit],
+    bits_map: dict[tuple[int, date], list[bool]],
+    month_key: date,
+    day_count: int
+) -> list[dict]:
+    habit_matrix = []
+    for habit in habits:
+        bits = bits_map.get((habit.id, month_key), [False] * 31)
+        days = bits[:day_count]
+        if len(days) < day_count:
+            days = days + [False] * (day_count - len(days))
+        habit_matrix.append({"id": habit.id, "habit": habit.name, "days": days})
+    return habit_matrix
+
+
+def _get_daily_counts(matrix: list[dict], day_count: int) -> tuple[list[int], int]:
+    counts = [0] * day_count
     completed = 0
     for row in matrix:
         for index, done in enumerate(row["days"]):
@@ -111,18 +151,69 @@ def _calculate_success_trend(daily_counts: list[int], habit_count: int) -> str:
     return f"{sign}{diff}%"
 
 
-def list_habits(db: Session, user_id: int) -> dict:
-    habits = (
+def _get_available_months(db: Session, user_id: int) -> list[str]:
+    month_rows = (
+        db.query(HabitMonthlyBits.month)
+        .join(Habit, Habit.id == HabitMonthlyBits.habit_id)
+        .filter(Habit.user_id == user_id)
+        .distinct()
+        .all()
+    )
+    months = {_month_start(row.month) for row in month_rows}
+    months.add(_month_start(date.today()))
+    return [_format_month(value) for value in sorted(months, reverse=True)]
+
+
+def _ensure_month_tracking(db: Session, habits: list[Habit], month_key: date) -> None:
+    if not habits:
+        return
+    habit_ids = [habit.id for habit in habits]
+    existing = (
+        db.query(HabitMonthlyBits.habit_id)
+        .filter(HabitMonthlyBits.habit_id.in_(habit_ids), HabitMonthlyBits.month == month_key)
+        .all()
+    )
+    existing_ids = {row.habit_id for row in existing}
+    for habit_id in habit_ids:
+        if habit_id in existing_ids:
+            continue
+        db.add(HabitMonthlyBits(habit_id=habit_id, month=month_key, day_bits="0" * 31))
+    db.commit()
+
+
+def _get_month_habits(db: Session, user_id: int, month_key: date, is_current: bool) -> list[Habit]:
+    if is_current:
+        habits = (
+            db.query(Habit)
+            .filter(Habit.user_id == user_id, Habit.is_active.is_(True))
+            .order_by(Habit.id.asc())
+            .all()
+        )
+        _ensure_month_tracking(db, habits, month_key)
+        return habits
+    return (
         db.query(Habit)
-        .filter(Habit.user_id == user_id, Habit.is_active.is_(True))
+        .join(HabitMonthlyBits, HabitMonthlyBits.habit_id == Habit.id)
+        .filter(Habit.user_id == user_id, HabitMonthlyBits.month == month_key)
         .order_by(Habit.id.asc())
         .all()
     )
-    window_dates = _get_window_dates()
-    months = sorted({_month_start(item) for item in window_dates})
-    bits_map = _load_month_bits(db, [habit.id for habit in habits], months)
-    habit_matrix = _build_habit_matrix(habits, bits_map, window_dates)
-    return {"habits": [habit.name for habit in habits], "habitMatrix": habit_matrix, "days": DAYS}
+
+
+def list_habits(db: Session, user_id: int, month: Optional[date] = None) -> dict:
+    month_key = _month_start(month or date.today())
+    is_current = month_key == _month_start(date.today())
+    habits = _get_month_habits(db, user_id, month_key, is_current)
+    day_count = _month_days(month_key)
+    bits_map = _load_month_bits(db, [habit.id for habit in habits], [month_key])
+    habit_matrix = _build_month_matrix(habits, bits_map, month_key, day_count)
+    return {
+        "habits": [habit.name for habit in habits],
+        "habitMatrix": habit_matrix,
+        "days": day_count,
+        "month": _format_month(month_key),
+        "availableMonths": _get_available_months(db, user_id)
+    }
 
 
 def add_habit(db: Session, user_id: int, name: str) -> dict:
@@ -130,14 +221,25 @@ def add_habit(db: Session, user_id: int, name: str) -> dict:
     db.add(habit)
     db.commit()
     db.refresh(habit)
-    data = list_habits(db, user_id)
+    month_key = _month_start(date.today())
+    db.add(HabitMonthlyBits(habit_id=habit.id, month=month_key, day_bits="0" * 31))
+    db.commit()
+    data = list_habits(db, user_id, month_key)
     new_row = next((row for row in data["habitMatrix"] if row["id"] == habit.id), None)
     return {"habitMatrix": data["habitMatrix"], "habit": new_row}
 
 
 def toggle_habit(
-    db: Session, user_id: int, habit_id: int, day_index: int, done: Optional[bool]
+    db: Session,
+    user_id: int,
+    habit_id: int,
+    day_index: int,
+    done: Optional[bool],
+    month: Optional[date]
 ) -> Optional[dict]:
+    month_key = _month_start(month or date.today())
+    if month_key != _month_start(date.today()):
+        return None
     habit = (
         db.query(Habit)
         .filter(Habit.id == habit_id, Habit.user_id == user_id, Habit.is_active.is_(True))
@@ -145,8 +247,9 @@ def toggle_habit(
     )
     if not habit:
         return None
-    target_date = date.today() - timedelta(days=(DAYS - 1 - day_index))
-    month_key = _month_start(target_date)
+    day_count = _month_days(month_key)
+    if day_index < 0 or day_index >= day_count:
+        return None
     record = (
         db.query(HabitMonthlyBits)
         .filter(HabitMonthlyBits.habit_id == habit_id, HabitMonthlyBits.month == month_key)
@@ -156,39 +259,45 @@ def toggle_habit(
         record = HabitMonthlyBits(habit_id=habit_id, month=month_key, day_bits="0" * 31)
         db.add(record)
     bits = _bits_to_list(record.day_bits)
-    bit_index = target_date.day - 1
+    bit_index = day_index
     if done is None:
         bits[bit_index] = not bits[bit_index]
     else:
         bits[bit_index] = done
     record.day_bits = _list_to_bits(bits)
     db.commit()
-    data = list_habits(db, user_id)
+    data = list_habits(db, user_id, month_key)
     return {"habitMatrix": data["habitMatrix"]}
 
 
-def get_dashboard(db: Session, user_id: int) -> dict:
-    habits = (
-        db.query(Habit)
-        .filter(Habit.user_id == user_id, Habit.is_active.is_(True))
-        .order_by(Habit.id.asc())
-        .all()
-    )
-    window_dates = _get_window_dates()
-    months = sorted({_month_start(item) for item in window_dates})
-    bits_map = _load_month_bits(db, [habit.id for habit in habits], months)
-    habit_matrix = _build_habit_matrix(habits, bits_map, window_dates)
-    daily_counts, completed = _get_daily_counts(habit_matrix)
+def get_dashboard(db: Session, user_id: int, month: Optional[date] = None) -> dict:
+    month_key = _month_start(month or date.today())
+    is_current = month_key == _month_start(date.today())
+    habits = _get_month_habits(db, user_id, month_key, is_current)
+    day_count = _month_days(month_key)
+    bits_map = _load_month_bits(db, [habit.id for habit in habits], [month_key])
+    habit_matrix = _build_month_matrix(habits, bits_map, month_key, day_count)
+    daily_counts, completed = _get_daily_counts(habit_matrix, day_count)
+    if is_current and daily_counts:
+        current_day = min(date.today().day, day_count)
+        effective_counts = daily_counts[:current_day]
+    else:
+        effective_counts = daily_counts
     total_habits = len(habit_matrix)
-    total_slots = total_habits * DAYS
-    success_rate = round((completed / total_slots) * 100) if total_slots else 0
-    success_trend = _calculate_success_trend(daily_counts, total_habits)
-    today_index = DAYS - 1
+    total_slots = total_habits * len(effective_counts)
+    success_rate = round((sum(effective_counts) / total_slots) * 100) if total_slots else 0
+    success_trend = _calculate_success_trend(effective_counts, total_habits)
+    if not daily_counts:
+        today_index = 0
+    elif is_current:
+        today_index = min(len(daily_counts) - 1, date.today().day - 1)
+    else:
+        today_index = len(daily_counts) - 1
     completed_habits = daily_counts[today_index] if daily_counts else 0
     streak_days = 0
-    if total_habits > 0:
-        for day_index in range(DAYS - 1, -1, -1):
-            daily_rate = daily_counts[day_index] / total_habits
+    if total_habits > 0 and effective_counts:
+        for day_index in range(len(effective_counts) - 1, -1, -1):
+            daily_rate = effective_counts[day_index] / total_habits
             if daily_rate >= STREAK_TARGET:
                 streak_days += 1
             else:
@@ -210,7 +319,9 @@ def get_dashboard(db: Session, user_id: int) -> dict:
         "stats": stats,
         "progressBars": progress_bars,
         "dailyCounts": daily_counts,
-        "successRate": success_rate
+        "successRate": success_rate,
+        "month": _format_month(month_key),
+        "availableMonths": _get_available_months(db, user_id)
     }
 
 

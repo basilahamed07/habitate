@@ -33,3 +33,5 @@ class SleepResponse(BaseModel):
     totalEntries: int
     bestSleep: float
     days: int
+    month: str
+    availableMonths: list[str]

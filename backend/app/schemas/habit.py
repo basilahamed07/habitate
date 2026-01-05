@@ -13,6 +13,8 @@ class HabitsResponse(BaseModel):
     habits: list[str]
     habitMatrix: list[HabitRow]
     days: int
+    month: str
+    availableMonths: list[str]
 
 
 class HabitCreate(BaseModel):
@@ -24,3 +26,4 @@ class HabitToggle(BaseModel):
     dayIndex: int
     done: Optional[bool] = None
     userId: Optional[str] = None
+    month: Optional[str] = None

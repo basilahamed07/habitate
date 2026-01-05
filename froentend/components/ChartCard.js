@@ -1,8 +1,9 @@
 import styles from "./ChartCard.module.css";
 
-export default function ChartCard({ title, children, footer }) {
+export default function ChartCard({ title, children, footer, className }) {
+  const cardClassName = className ? `${styles.card} ${className}` : styles.card;
   return (
-    <section className={styles.card}>
+    <section className={cardClassName}>
       <div className={styles.header}>
         <h3>{title}</h3>
       </div>

@@ -3,8 +3,12 @@ import Link from "next/link";
 import { useEffect, useState } from "react";
 import { useRouter } from "next/router";
 import SiteHeader from "../components/SiteHeader";
-import { getAuthToken, postJson, safeFetchJson } from "../lib/api";
+import { clearAuthToken, postJson, safeFetchJson } from "../lib/api";
 import styles from "../styles/Profile.module.css";
+
+const PASSWORD_RULE = /^(?=.*[A-Z])(?=.*[!@#$%^&*]).{8,}$/;
+const PASSWORD_MESSAGE =
+  "Password must be at least 8 characters and include 1 uppercase and 1 special character.";
 
 export default function ProfilePage() {
   const router = useRouter();
@@ -15,17 +19,13 @@ export default function ProfilePage() {
   const [avatarUrl, setAvatarUrl] = useState("");
   const [status, setStatus] = useState("");
   const [isSaving, setIsSaving] = useState(false);
+  const [currentPassword, setCurrentPassword] = useState("");
+  const [newPassword, setNewPassword] = useState("");
+  const [passwordStatus, setPasswordStatus] = useState("");
+  const [isUpdatingPassword, setIsUpdatingPassword] = useState(false);
 
   useEffect(() => {
     let isMounted = true;
-    const token = getAuthToken();
-    if (!token) {
-      router.push("/login");
-      return () => {
-        isMounted = false;
-      };
-    }
-
     const load = async () => {
       const data = await safeFetchJson("/users/me", null);
       if (!isMounted) {
@@ -93,6 +93,41 @@ export default function ProfilePage() {
     setStatus("");
   };
 
+  const handleLogout = async () => {
+    await postJson("/auth/logout", {});
+    clearAuthToken();
+    router.push("/login");
+  };
+
+  const handlePasswordChange = async () => {
+    const trimmedNew = newPassword.trim();
+    if (!trimmedNew || isUpdatingPassword) {
+      setPasswordStatus("New password is required.");
+      return;
+    }
+    if (!PASSWORD_RULE.test(trimmedNew)) {
+      setPasswordStatus(PASSWORD_MESSAGE);
+      return;
+    }
+    setIsUpdatingPassword(true);
+    setPasswordStatus("");
+    const payload = {
+      newPassword: trimmedNew
+    };
+    if (currentPassword.trim()) {
+      payload.currentPassword = currentPassword.trim();
+    }
+    const result = await postJson("/users/me/password", payload);
+    if (result?.status === "ok") {
+      setCurrentPassword("");
+      setNewPassword("");
+      setPasswordStatus("Password updated.");
+    } else {
+      setPasswordStatus("Unable to update password.");
+    }
+    setIsUpdatingPassword(false);
+  };
+
   const avatarSrc = avatarUrl || "/avatars/user-01.svg";
 
   const handleAvatarUpload = (event) => {
@@ -130,9 +165,14 @@ export default function ProfilePage() {
         title="User Panel"
         subtitle="Update your name, photo, and calm account details."
         actions={
-          <Link className={styles.backLink} href="/dashboard">
-            Back to Dashboard
-          </Link>
+          <div className={styles.headerActions}>
+            <Link className={styles.backLink} href="/dashboard">
+              Back to Dashboard
+            </Link>
+            <button className={styles.logoutButton} type="button" onClick={handleLogout}>
+              Log Out
+            </button>
+          </div>
         }
       />
 
@@ -189,6 +229,51 @@ export default function ProfilePage() {
               </button>
             </div>
           </form>
+        </div>
+
+        <div className={styles.passwordCard}>
+          <div className={styles.passwordHeader}>
+            <h3>Change Password</h3>
+            {router.query.reset ? (
+              <span className={styles.resetBadge}>Reset required</span>
+            ) : null}
+          </div>
+          <div className={styles.passwordForm}>
+            <label className={styles.profileLabel}>
+              Current password
+              <input
+                className={styles.profileInput}
+                type="password"
+                value={currentPassword}
+                onChange={(event) => setCurrentPassword(event.target.value)}
+                placeholder="Enter current password"
+              />
+            </label>
+            <label className={styles.profileLabel}>
+              New password
+              <input
+                className={styles.profileInput}
+                type="password"
+                value={newPassword}
+                onChange={(event) => setNewPassword(event.target.value)}
+                placeholder="Enter new password"
+              />
+              <span className={styles.passwordHint}>
+                Use at least 8 characters with 1 uppercase and 1 special character.
+              </span>
+            </label>
+            {passwordStatus ? <span className={styles.profileStatus}>{passwordStatus}</span> : null}
+            <div className={styles.profileActions}>
+              <button
+                className={styles.primaryButton}
+                type="button"
+                onClick={handlePasswordChange}
+                disabled={isUpdatingPassword}
+              >
+                {isUpdatingPassword ? "Updating..." : "Update Password"}
+              </button>
+            </div>
+          </div>
         </div>
 
         <aside className={styles.quoteCard}>

@@ -1,4 +1,4 @@
-from sqlalchemy import BigInteger, Column, DateTime, String
+from sqlalchemy import BigInteger, Column, DateTime, Integer, String
 from sqlalchemy.sql import func
 
 from app.models.base import Base
@@ -15,5 +15,6 @@ class User(Base):
     avatar_url = Column(String)
     bio = Column(String)
     status = Column(String, nullable=False, default="active")
+    token_version = Column(Integer, nullable=False, default=0)
     created_at = Column(DateTime(timezone=True), server_default=func.now())
     updated_at = Column(DateTime(timezone=True), onupdate=func.now(), server_default=func.now())

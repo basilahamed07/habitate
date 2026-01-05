@@ -21,3 +21,5 @@ class DashboardResponse(BaseModel):
     progressBars: list[ProgressBar]
     dailyCounts: list[int]
     successRate: int
+    month: str
+    availableMonths: list[str]

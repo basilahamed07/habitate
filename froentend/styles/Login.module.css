@@ -103,6 +103,12 @@
   margin-bottom: 18px;
 }
 
+.formHint {
+  font-size: 12px;
+  color: var(--ink-500);
+  text-align: left;
+}
+
 .formError {
   font-size: 13px;
   color: #b05d4a;

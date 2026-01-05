@@ -415,10 +415,27 @@
   gap: 12px;
 }
 
+.modalCheckbox {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 12px;
+  color: var(--ink-600);
+}
+
+.modalCheckbox input {
+  accent-color: rgba(125, 150, 112, 0.9);
+}
+
 .modalField {
   display: grid;
   gap: 6px;
   font-size: 12px;
+  color: var(--ink-500);
+}
+
+.modalHint {
+  font-size: 11px;
   color: var(--ink-500);
 }
 
@@ -441,6 +458,15 @@
   display: flex;
   gap: 10px;
   flex-wrap: wrap;
+}
+
+.formError {
+  font-size: 12px;
+  color: #b05d4a;
+  background: rgba(245, 232, 224, 0.8);
+  border: 1px solid rgba(209, 178, 164, 0.6);
+  padding: 8px 12px;
+  border-radius: 12px;
 }
 
 .modalSection {

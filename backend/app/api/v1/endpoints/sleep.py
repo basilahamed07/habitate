@@ -1,3 +1,5 @@
+from datetime import date
+
 from fastapi import APIRouter, Depends, HTTPException, Query, status
 from sqlalchemy.orm import Session
 
@@ -13,14 +15,19 @@ router = APIRouter(prefix="/sleep", tags=["sleep"])
 async def list_sleep(
     user=Depends(get_current_user),
     db: Session = Depends(get_db),
-    user_id: int | None = Query(default=None, alias="userId")
+    user_id: int | None = Query(default=None, alias="userId"),
+    month: str | None = Query(default=None)
 ) -> SleepResponse:
     target_user_id = user.id
     if user_id is not None and user.role == "admin":
         if not user_service.get_user(db, user_id):
             raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="User not found")
         target_user_id = user_id
-    data = sleep_service.list_sleep(db, target_user_id)
+    try:
+        month_key = sleep_service.parse_month(month)
+    except ValueError:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Invalid month format")
+    data = sleep_service.list_sleep(db, target_user_id, month_key)
     return SleepResponse(**data)
 
 
@@ -32,8 +39,18 @@ async def upsert_sleep(
 ) -> SleepResponse:
     if payload.hours < 0 or payload.hours > 24:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Invalid hours")
+    if sleep_service.month_start(payload.date) != sleep_service.month_start(date.today()):
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Updates are only allowed for the current month"
+        )
+    if payload.date > date.today():
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Sleep entries cannot be logged for future dates"
+        )
     sleep_service.upsert_sleep(db, user.id, payload.date, payload.hours)
-    data = sleep_service.list_sleep(db, user.id)
+    data = sleep_service.list_sleep(db, user.id, sleep_service.month_start(payload.date))
     return SleepResponse(**data)
 
 

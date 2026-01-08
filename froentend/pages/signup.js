@@ -3,8 +3,12 @@ import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/router";
 import { useState } from "react";
-import { postJson, setAuthToken } from "../lib/api";
+import { postJson } from "../lib/api";
 import styles from "../styles/Login.module.css";
+
+const PASSWORD_RULE = /^(?=.*[A-Z])(?=.*[!@#$%^&*]).{8,}$/;
+const PASSWORD_MESSAGE =
+  "Password must be at least 8 characters and include 1 uppercase and 1 special character.";
 
 export default function SignupPage() {
   const router = useRouter();
@@ -23,6 +27,10 @@ export default function SignupPage() {
       setError("All fields are required.");
       return;
     }
+    if (!PASSWORD_RULE.test(trimmedPassword)) {
+      setError(PASSWORD_MESSAGE);
+      return;
+    }
     setIsSubmitting(true);
     setError("");
     const result = await postJson("/auth/signup", {
@@ -31,7 +39,6 @@ export default function SignupPage() {
       password: trimmedPassword
     });
     if (result?.access_token) {
-      setAuthToken(result.access_token);
       router.push("/dashboard");
       return;
     }
@@ -110,6 +117,9 @@ export default function SignupPage() {
               value={password}
               onChange={(event) => setPassword(event.target.value)}
             />
+            <div className={styles.formHint}>
+              Use at least 8 characters with 1 uppercase and 1 special character.
+            </div>
             {error ? <div className={styles.formError}>{error}</div> : null}
             <button className={styles.primaryButton} type="submit" disabled={isSubmitting}>
               {isSubmitting ? "Creating..." : "Sign Up"}

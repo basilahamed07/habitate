@@ -1,10 +1,9 @@
 import styles from "./HabitTable.module.css";
 
-export default function HabitTable({ rows, onToggle, dayCount, onDelete }) {
-  const length =
-    dayCount || rows?.[0]?.days?.length || 0;
+export default function HabitTable({ rows, onToggle, dayCount, onDelete, readOnly }) {
+  const length = dayCount || rows?.[0]?.days?.length || 0;
   const days = Array.from({ length }, (_, index) => index + 1);
-  const canDelete = typeof onDelete === "function";
+  const canDelete = typeof onDelete === "function" && !readOnly;
 
   return (
     <div className={styles.wrapper}>
@@ -38,11 +37,14 @@ export default function HabitTable({ rows, onToggle, dayCount, onDelete }) {
                 (done, index) => (
                 <td key={`${row.habit}-${index}`}>
                   <button
-                    className={`${styles.dot} ${done ? styles.complete : styles.pending}`}
+                    className={`${styles.dot} ${done ? styles.complete : styles.pending} ${
+                      readOnly ? styles.dotDisabled : ""
+                    }`}
                     aria-label={done ? "Completed" : "Not completed"}
                     aria-pressed={done}
                     type="button"
                     onClick={() => onToggle?.(row.id, index)}
+                    disabled={readOnly}
                   />
                 </td>
               ))}

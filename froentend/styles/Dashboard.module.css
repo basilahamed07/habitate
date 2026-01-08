@@ -10,6 +10,33 @@
   display: flex;
   align-items: center;
   gap: 12px;
+  flex-wrap: wrap;
+}
+
+.monthPicker {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.monthSelect {
+  padding: 8px 14px;
+  border-radius: 999px;
+  border: 1px solid rgba(201, 193, 180, 0.7);
+  background: rgba(255, 255, 255, 0.85);
+  font-size: 13px;
+  color: var(--ink-700);
+}
+
+.readOnlyBadge {
+  padding: 4px 10px;
+  border-radius: 999px;
+  border: 1px solid rgba(221, 171, 150, 0.8);
+  background: rgba(243, 220, 210, 0.7);
+  font-size: 11px;
+  color: #7d4a39;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
 }
 
 .sleepLink {
@@ -255,6 +282,16 @@
   margin-bottom: 14px;
 }
 
+.tableTitle {
+  display: grid;
+  gap: 4px;
+}
+
+.readOnlyNote {
+  font-size: 12px;
+  color: var(--ink-500);
+}
+
 .tableHeader h3 {
   margin: 0;
   font-size: clamp(18px, 3vw, 22px);
@@ -327,6 +364,73 @@
   box-shadow: var(--shadow-card);
   display: grid;
   gap: 16px;
+}
+
+.reportCard {
+  background: rgba(255, 255, 255, 0.82);
+  border-radius: var(--radius-lg);
+  padding: 20px;
+  border: 1px solid rgba(222, 213, 199, 0.7);
+  box-shadow: var(--shadow-card);
+  display: grid;
+  gap: 14px;
+}
+
+.reportHeader {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.reportHeader h3 {
+  margin: 0;
+  font-size: 20px;
+}
+
+.reportMeta {
+  font-size: 12px;
+  color: var(--ink-500);
+}
+
+.reportButton {
+  border: none;
+  padding: 8px 14px;
+  border-radius: 999px;
+  background: rgba(145, 168, 136, 0.9);
+  color: #f6f2ea;
+  font-size: 12px;
+  cursor: pointer;
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.reportButton:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 10px 20px rgba(118, 133, 107, 0.2);
+}
+
+.reportChart {
+  height: 200px;
+}
+
+.reportEmpty {
+  margin: 0;
+  font-size: 13px;
+  color: var(--ink-500);
+}
+
+.reportSummary {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+  font-size: 12px;
+  color: var(--ink-500);
+}
+
+.reportSummary strong {
+  display: block;
+  font-size: 16px;
+  color: var(--ink-900);
 }
 
 .analysisCard h3 {
@@ -416,6 +520,15 @@
   .headerActions {
     width: 100%;
     justify-content: space-between;
+  }
+
+  .monthPicker {
+    width: 100%;
+    justify-content: space-between;
+  }
+
+  .monthSelect {
+    flex: 1;
   }
 
   .tableHeader {

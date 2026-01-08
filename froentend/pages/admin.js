@@ -3,13 +3,7 @@ import Image from "next/image";
 import dynamic from "next/dynamic";
 import { useEffect, useMemo, useState } from "react";
 import SiteHeader from "../components/SiteHeader";
-import {
-  clearAuthToken,
-  getAuthToken,
-  postJson,
-  safeFetchJson,
-  setAuthToken
-} from "../lib/api";
+import { clearAuthToken, postJson, safeFetchJson } from "../lib/api";
 import { adminStats, users as fallbackUsers } from "../lib/mockData";
 import styles from "../styles/Admin.module.css";
 
@@ -59,6 +53,10 @@ const computeOverviewBreakdown = (rows, windowDays = 7) => {
   };
 };
 
+const PASSWORD_RULE = /^(?=.*[A-Z])(?=.*[!@#$%^&*]).{8,}$/;
+const PASSWORD_MESSAGE =
+  "Password must be at least 8 characters and include 1 uppercase and 1 special character.";
+
 export default function AdminPage({ initialUsers, initialStats }) {
   const [isAuthed, setIsAuthed] = useState(false);
   const [authChecked, setAuthChecked] = useState(false);
@@ -78,6 +76,9 @@ export default function AdminPage({ initialUsers, initialStats }) {
   const [editStatus, setEditStatus] = useState("");
   const [newUserName, setNewUserName] = useState("");
   const [newUserEmail, setNewUserEmail] = useState("");
+  const [newUserPassword, setNewUserPassword] = useState("");
+  const [requireReset, setRequireReset] = useState(true);
+  const [createUserError, setCreateUserError] = useState("");
   const [isCreating, setIsCreating] = useState(false);
   const [analysisOpen, setAnalysisOpen] = useState(false);
   const [analysisUser, setAnalysisUser] = useState(null);
@@ -102,13 +103,6 @@ export default function AdminPage({ initialUsers, initialStats }) {
     let isMounted = true;
 
     const verify = async () => {
-      const token = getAuthToken();
-      if (!token) {
-        if (isMounted) {
-          setAuthChecked(true);
-        }
-        return;
-      }
       const statsData = await safeFetchJson("/admin/stats", null);
       if (!isMounted) {
         return;
@@ -198,7 +192,11 @@ export default function AdminPage({ initialUsers, initialStats }) {
       setIsAuthLoading(false);
       return;
     }
-    setAuthToken(result.access_token);
+    if (result.reset_required) {
+      setAuthError("Password reset required. Contact an admin to update credentials.");
+      setIsAuthLoading(false);
+      return;
+    }
     const statsData = await safeFetchJson("/admin/stats", null);
     if (!statsData) {
       clearAuthToken();
@@ -215,16 +213,31 @@ export default function AdminPage({ initialUsers, initialStats }) {
   const handleCreateUser = async () => {
     const trimmedName = newUserName.trim();
     const trimmedEmail = newUserEmail.trim();
-    if (!trimmedName || !trimmedEmail || isCreating) {
+    const trimmedPassword = newUserPassword.trim();
+    if (!trimmedName || !trimmedEmail || !trimmedPassword || isCreating) {
+      return;
+    }
+    if (!PASSWORD_RULE.test(trimmedPassword)) {
+      setCreateUserError(PASSWORD_MESSAGE);
       return;
     }
     setIsCreating(true);
-    const result = await postJson("/users", { name: trimmedName, email: trimmedEmail });
+    setCreateUserError("");
+    const result = await postJson("/users", {
+      name: trimmedName,
+      email: trimmedEmail,
+      password: trimmedPassword,
+      require_reset: requireReset
+    });
     if (result?.users) {
       setUsers(result.users);
       setNewUserName("");
       setNewUserEmail("");
+      setNewUserPassword("");
+      setRequireReset(true);
       setAddModalOpen(false);
+    } else {
+      setCreateUserError("Unable to create user.");
     }
     setIsCreating(false);
   };
@@ -293,6 +306,10 @@ export default function AdminPage({ initialUsers, initialStats }) {
     const trimmed = password.trim();
     if (!trimmed) {
       setPasswordStatus("Password is required.");
+      return;
+    }
+    if (!PASSWORD_RULE.test(trimmed)) {
+      setPasswordStatus(PASSWORD_MESSAGE);
       return;
     }
     const result = await postJson(`/users/${editUser.id}/password`, { password: trimmed });
@@ -504,6 +521,9 @@ export default function AdminPage({ initialUsers, initialStats }) {
                 setNewUserName("");
                 setNewUserEmail("");
                 setAddModalOpen(true);
+                setCreateUserError("");
+                setNewUserPassword("");
+                setRequireReset(true);
               }}
             >
               + Add User
@@ -752,6 +772,9 @@ export default function AdminPage({ initialUsers, initialStats }) {
               setAddModalOpen(false);
               setNewUserName("");
               setNewUserEmail("");
+              setNewUserPassword("");
+              setRequireReset(true);
+              setCreateUserError("");
             }}
             aria-label="Close add user"
           />
@@ -765,6 +788,9 @@ export default function AdminPage({ initialUsers, initialStats }) {
                 setAddModalOpen(false);
                 setNewUserName("");
                 setNewUserEmail("");
+                setNewUserPassword("");
+                setRequireReset(true);
+                setCreateUserError("");
               }}
               >
                 ×
@@ -792,13 +818,43 @@ export default function AdminPage({ initialUsers, initialStats }) {
                     onChange={(event) => setNewUserEmail(event.target.value)}
                   />
                 </label>
+                <label className={styles.modalField}>
+                  Temporary password
+                  <input
+                    className={styles.modalInput}
+                    placeholder="Temporary password"
+                    aria-label="Temporary password"
+                    type="password"
+                    value={newUserPassword}
+                    onChange={(event) => setNewUserPassword(event.target.value)}
+                  />
+                  <span className={styles.modalHint}>
+                    Use 8+ characters with 1 uppercase and 1 special character.
+                  </span>
+                </label>
+                <label className={styles.modalCheckbox}>
+                  <input
+                    type="checkbox"
+                    checked={requireReset}
+                    onChange={(event) => setRequireReset(event.target.checked)}
+                  />
+                  Require password reset on first login
+                </label>
               </div>
+              {createUserError ? (
+                <div className={styles.formError}>{createUserError}</div>
+              ) : null}
               <div className={styles.modalActions}>
                 <button
                   className={styles.primaryButton}
                   type="button"
                   onClick={handleCreateUser}
-                  disabled={isCreating || !newUserName.trim() || !newUserEmail.trim()}
+                  disabled={
+                    isCreating ||
+                    !newUserName.trim() ||
+                    !newUserEmail.trim() ||
+                    !newUserPassword.trim()
+                  }
                 >
                   Save User
                 </button>

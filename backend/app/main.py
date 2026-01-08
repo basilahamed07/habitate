@@ -19,6 +19,18 @@ def create_app() -> FastAPI:
         allow_methods=["*"],
         allow_headers=["*"]
     )
+
+    if settings.SECURITY_HEADERS:
+        @app.middleware("http")
+        async def add_security_headers(request, call_next):
+            response = await call_next(request)
+            response.headers.setdefault("Content-Security-Policy", settings.CSP_POLICY)
+            response.headers.setdefault("X-Content-Type-Options", "nosniff")
+            response.headers.setdefault("X-Frame-Options", "DENY")
+            response.headers.setdefault("Referrer-Policy", "no-referrer")
+            response.headers.setdefault("Permissions-Policy", "geolocation=()")
+            return response
+
     app.include_router(api_router, prefix=settings.API_V1_STR)
     register_error_handlers(app)
     return app

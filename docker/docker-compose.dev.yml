@@ -21,7 +21,7 @@ services:
     environment:
       DATABASE_URL: postgresql+psycopg2://postgres:postgres@db:5432/habits_test
       SECRET_KEY: change_me
-      CORS_ORIGINS: "*"
+      CORS_ORIGINS: "http://localhost:3000,http://192.168.1.43:3000"
     depends_on:
       - db
     volumes:

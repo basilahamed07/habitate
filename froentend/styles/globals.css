@@ -98,3 +98,19 @@ main {
     padding: 32px 20px 48px;
   }
 }
+
+@media print {
+  @page {
+    size: landscape;
+    margin: 12mm;
+  }
+
+  body.sleep-print {
+    background: #fff;
+  }
+
+  body.sleep-print .page {
+    padding: 0;
+    min-height: auto;
+  }
+}

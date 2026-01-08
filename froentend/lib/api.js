@@ -44,6 +44,7 @@ export async function safeFetchJson(endpoint, fallback) {
   try {
     const response = await fetch(`${API_BASE}${endpoint}`, {
       method: "GET",
+      credentials: "include",
       headers: {
         ...getAuthHeaders()
       }
@@ -61,6 +62,7 @@ export async function postJson(endpoint, payload) {
   try {
     const response = await fetch(`${API_BASE}${endpoint}`, {
       method: "POST",
+      credentials: "include",
       headers: {
         "Content-Type": "application/json",
         ...getAuthHeaders()
@@ -80,6 +82,7 @@ export async function deleteJson(endpoint) {
   try {
     const response = await fetch(`${API_BASE}${endpoint}`, {
       method: "DELETE",
+      credentials: "include",
       headers: {
         ...getAuthHeaders()
       }

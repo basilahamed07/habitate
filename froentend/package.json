@@ -6,7 +6,8 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "server": "node backend/server.js"
+    "server": "node backend/server.js",
+    "test:ui": "node --test tests/ui-smoke.test.js"
   },
   "dependencies": {
     "chart.js": "^4.4.1",
